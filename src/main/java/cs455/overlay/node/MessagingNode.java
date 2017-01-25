@@ -2,11 +2,26 @@ package cs455.overlay.node;
 
 public class MessagingNode {
 
+    /*
+    java cs455.overlay.node.MessagingNode registry-host registry-port
+     */
+
     public static void main(String[] args) {
+        if(args.length != 2) {
+            System.out.println("Not enough args");
+        }
+
+        try {
+            String registryHost = args[0];
+            int registryPort = Integer.parseInt(args[1]);
+            new MessagingNode(registryHost, registryPort);
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
 
     }
 
-    public MessagingNode() {
+    public MessagingNode(String registryHost, int registryPort) {
 
     }
 

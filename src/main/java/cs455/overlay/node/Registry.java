@@ -24,7 +24,7 @@ public class Registry {
 
     public Registry(int portnum) {
         tcpServerThread = new TCPServerThread(portnum);
-        tcpServerThread.run();
+        //tcpServerThread.run();
     }
 
     /**
