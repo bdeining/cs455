@@ -1,6 +1,8 @@
 package cs455.overlay.node;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import cs455.overlay.node.Node;
 import cs455.overlay.transport.TCPServerThread;
@@ -8,6 +10,8 @@ import cs455.overlay.transport.TCPServerThread;
 public class Registry {
 
     private TCPServerThread tcpServerThread;
+
+    private static ConcurrentHashMap<String, Integer> registeredNodes;
 
     public static void main(String[] args) {
         if(args.length != 1) {
@@ -23,8 +27,19 @@ public class Registry {
     }
 
     public Registry(int portnum) {
+        registeredNodes = new ConcurrentHashMap<>();
         tcpServerThread = new TCPServerThread(portnum);
         //tcpServerThread.run();
+    }
+
+    public static void registerNode(Node node) {
+        if(registeredNodes == null) {
+            return;
+        }
+
+        if(!registeredNodes.containsKey(node.getHostname())) {
+            registeredNodes.put(node.getHostname(), node.getPort());
+        }
     }
 
     /**

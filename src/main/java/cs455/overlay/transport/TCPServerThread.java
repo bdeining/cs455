@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import cs455.overlay.node.Node;
+import cs455.overlay.node.Registry;
+
 public class TCPServerThread {
 
     private int portNum;

@@ -1,10 +1,22 @@
 package cs455.overlay.node;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
+
+import cs455.overlay.transport.TCPSender;
+import cs455.overlay.wireformats.RegisterRequest;
+
 public class MessagingNode {
 
     /*
     java cs455.overlay.node.MessagingNode registry-host registry-port
      */
+
+    private InetAddress inetAddress;
 
     public static void main(String[] args) {
         if(args.length != 2) {
@@ -22,6 +34,32 @@ public class MessagingNode {
     }
 
     public MessagingNode(String registryHost, int registryPort) {
+        try {
+            inetAddress = InetAddress.getLocalHost();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println(inetAddress.toString());
+
+        try {
+            Socket socket = new Socket(registryHost, registryPort);
+            TCPSender tcpSender = new TCPSender(socket);
+
+            byte[] wrappedData =
+                    new RegisterRequest(inetAddress.getHostAddress(), registryPort).getBytes();
+
+            tcpSender.sendData(wrappedData);
+            tcpSender.closeSocket();
+        } catch (UnknownHostException e) {
+            System.out.println("Unknown host: kq6py");
+            System.exit(1);
+        } catch  (IOException e) {
+            System.out.println("No I/O");
+            System.exit(1);
+        }
+
+
 
     }
 
