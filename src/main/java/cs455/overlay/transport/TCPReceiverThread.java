@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
 
+import cs455.overlay.node.Node;
+import cs455.overlay.node.Registry;
+import cs455.overlay.wireformats.Deregister;
 import cs455.overlay.wireformats.RegisterRequest;
 
 public class TCPReceiverThread implements Runnable {
@@ -28,7 +31,9 @@ public class TCPReceiverThread implements Runnable {
                 byte[] data = new byte[dataLength];
                 dataInputStream.readFully(data);
 
-                //RegisterRequest registerRequest = new RegisterRequest(data);
+                RegisterRequest registerRequest = new RegisterRequest(data);
+                Registry.registerNode(new Node(registerRequest.getIpAddress(), registerRequest.getPort()));
+
             } catch (SocketException e) {
                 e.printStackTrace();
                 break;

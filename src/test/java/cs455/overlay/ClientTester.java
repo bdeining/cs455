@@ -1,32 +1,17 @@
 package cs455.overlay;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import org.junit.Before;
 import org.junit.Test;
 
-import cs455.overlay.node.Registry;
 import cs455.overlay.transport.TCPSender;
 import cs455.overlay.wireformats.RegisterRequest;
 
-/**
- * Created by bdeininger on 1/24/17.
- */
 public class ClientTester {
-
-
-
-    @Before
-    public void setUp() {
-        //Registry registry = new Registry(50000);
-    }
 
     @Test
     public void testMessagingNode() {

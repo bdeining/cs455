@@ -38,7 +38,11 @@ public class Registry {
         }
 
         if(!registeredNodes.containsKey(node.getHostname())) {
+            System.out.println("Registering : " + node.getHostname() + " " + node.getPort());
             registeredNodes.put(node.getHostname(), node.getPort());
+
+        } else {
+            System.out.println("Node already registered : " + node.getHostname() + " " + node.getPort());
         }
     }
 

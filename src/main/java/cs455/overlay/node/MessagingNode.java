@@ -6,9 +6,10 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Scanner;
 
 import cs455.overlay.transport.TCPSender;
-import cs455.overlay.wireformats.RegisterRequest;
+import cs455.overlay.wireformats.EventFactory;
 
 public class MessagingNode {
 
@@ -16,7 +17,7 @@ public class MessagingNode {
     java cs455.overlay.node.MessagingNode registry-host registry-port
      */
 
-    private InetAddress inetAddress;
+    private String inetAddress;
 
     public static void main(String[] args) {
         if(args.length != 2) {
@@ -31,11 +32,16 @@ public class MessagingNode {
             e.printStackTrace();
         }
 
+        Scanner sc = new Scanner(System.in);
+        int i = sc.nextInt();
+
+        System.out.println(i);
+
     }
 
     public MessagingNode(String registryHost, int registryPort) {
         try {
-            inetAddress = InetAddress.getLocalHost();
+            inetAddress = InetAddress.getLocalHost().toString();
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
@@ -46,8 +52,7 @@ public class MessagingNode {
             Socket socket = new Socket(registryHost, registryPort);
             TCPSender tcpSender = new TCPSender(socket);
 
-            byte[] wrappedData =
-                    new RegisterRequest(inetAddress.getHostAddress(), registryPort).getBytes();
+            byte[] wrappedData = EventFactory.createRegisterRequest(inetAddress, registryPort).getBytes();
 
             tcpSender.sendData(wrappedData);
             tcpSender.closeSocket();

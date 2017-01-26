@@ -2,9 +2,6 @@ package cs455.overlay;
 
 import cs455.overlay.node.MessagingNode;
 
-/**
- * Created by bdeininger on 1/25/17.
- */
 public class MessagingNodeWrapper implements Runnable {
 
     private int port;

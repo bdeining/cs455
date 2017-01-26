@@ -14,6 +14,15 @@ public class EventFactory {
         return singleton;
     }
 
+    public static Event createRegisterRequest(String address, int port) {
+        return new RegisterRequest(address, port);
+    }
+
+    public static Event createDeregisterRequest(String address, int port) {
+        return new Deregister(address, port);
+    }
+
+
     public static Event createEvent(int type, byte[] bytes) {
 
         Event event = null;

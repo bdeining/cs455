@@ -6,20 +6,20 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public class RegisterRequest implements Event {
+public class Deregister implements Event {
     private int type;
 
     private String ipAddress;
 
     private int port;
 
-    public RegisterRequest(String ipAddress, int port) {
+    public Deregister(String ipAddress, int port) {
         this.ipAddress = ipAddress;
         this.port = port;
-        this.type = 1;
+        this.type = 2;
     }
 
-    public RegisterRequest(byte[] bytes) throws IOException {
+    public Deregister(byte[] bytes) throws IOException {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
         DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
         type = dataInputStream.readInt();
