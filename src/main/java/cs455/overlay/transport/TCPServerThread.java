@@ -7,7 +7,7 @@ import java.net.Socket;
 import cs455.overlay.node.Node;
 import cs455.overlay.node.Registry;
 
-public class TCPServerThread {
+public class TCPServerThread implements Runnable {
 
     private int portNum;
 
@@ -20,16 +20,15 @@ public class TCPServerThread {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        listenOnServerSocket();
     }
 
-    private void listenOnServerSocket() {
+    @Override
+    public void run() {
         while (true) {
             try {
                 Socket client = serverSocket.accept();
                 TCPReceiverThread tcpReceiverThread = new TCPReceiverThread(client);
-                tcpReceiverThread.run();
+                new Thread(tcpReceiverThread).start();
             } catch (IOException e) {
                 e.printStackTrace();
             }

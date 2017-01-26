@@ -1,10 +1,11 @@
 package cs455.overlay.node;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 
-import cs455.overlay.node.Node;
 import cs455.overlay.transport.TCPServerThread;
 
 public class Registry {
@@ -13,22 +14,74 @@ public class Registry {
 
     private static ConcurrentHashMap<String, Integer> registeredNodes;
 
+    private static final String LIST_MESSAGING_NODES_COMMAND = "list-messaging nodes";
+
+    private static final String LIST_WEIGHTS_COMMAND = "list-weights";
+
+    private static final String SETUP_OVERLAY_COMMAND = "setup-overlay";
+
+    private static final String SEND_OVERLAY_LINK_WEIGHTS_COMMAND = "send-overlay-link-weights";
+
+    private static final String START_COMMAND = "start";
+
     public static void main(String[] args) {
         if(args.length != 1) {
             System.out.println("Invalid number of args");
         }
-
+        Registry registry = null;
         try {
             int portnum = Integer.parseInt(args[0]);
-            new Registry(portnum);
+            registry = new Registry(portnum);
         } catch (NumberFormatException e) {
             e.printStackTrace();
+        }
+
+        if(registry == null) {
+            System.out.println("failed to set up registry");
+            return;
+        }
+
+        Scanner scanner = new Scanner(System.in);
+        while(scanner.hasNext()) {
+            String command = scanner.nextLine();
+
+            if (command.contains(LIST_MESSAGING_NODES_COMMAND)) {
+                String[] strings = command.substring(LIST_MESSAGING_NODES_COMMAND.length()).split(
+                        " ");
+                if(strings.length == 0) {
+                    continue;
+                }
+
+                registry.listMessagingNodes(new ArrayList<>(Arrays.asList(strings)));
+            } else if(command.contains(LIST_WEIGHTS_COMMAND)) {
+                registry.listWeights();
+            } else if(command.contains(SETUP_OVERLAY_COMMAND)) {
+                String[] strings = command.split(" ");
+                if(strings.length != 2) {
+                    continue;
+                }
+                // TODO check number
+                registry.setupOverlay(Integer.parseInt(strings[1]));
+            } else if(command.contains(SEND_OVERLAY_LINK_WEIGHTS_COMMAND)) {
+                registry.sendOverlayLinkWeights();
+            } else if(command.contains(START_COMMAND)) {
+                String[] strings = command.split(" ");
+                System.out.println(command);
+                if(strings.length != 2) {
+                    continue;
+                }
+                // TODO check number
+                registry.start(Integer.parseInt(strings[1]));
+            }
         }
     }
 
     public Registry(int portnum) {
         registeredNodes = new ConcurrentHashMap<>();
         tcpServerThread = new TCPServerThread(portnum);
+
+        new Thread(tcpServerThread).start();
+//        tcpServerThread.run();
         //tcpServerThread.run();
     }
 
@@ -50,8 +103,8 @@ public class Registry {
      * This should result in information about the messaging nodes (hostname, and port-number) being
      * listed. Information for each messaging node should be listed on a separate line.
      **/
-    public void listMessagingNodes(List<Node> nodes) {
-
+    public void listMessagingNodes(List<String> nodes) {
+        System.out.println("list nodes : " + nodes.toString());
     }
 
     /**
@@ -62,7 +115,7 @@ public class Registry {
      * (broccoli.cs.colostate.edu:5001) with a link weight of 8.
      */
     public void listWeights() {
-
+        System.out.println("listing weights");
     }
 
     /**
@@ -80,7 +133,7 @@ public class Registry {
      * @param numberOfConnections
      */
     public void setupOverlay(int numberOfConnections) {
-
+        System.out.println("setup overlay + " + numberOfConnections);
     }
 
     /**
@@ -91,6 +144,7 @@ public class Registry {
      *
      */
     public void sendOverlayLinkWeights() {
+        System.out.println("sending link weights");
 
     }
 
@@ -102,7 +156,7 @@ public class Registry {
      * @param numberOfRounds
      */
     public void start(int numberOfRounds) {
-
+        System.out.println("starting : number of rounds " + numberOfRounds);
     }
 }
 
