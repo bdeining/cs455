@@ -6,7 +6,9 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 
+import cs455.overlay.transport.TCPReceiverThread;
 import cs455.overlay.transport.TCPSender;
+import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.EventFactory;
 
@@ -18,6 +20,8 @@ public class MessagingNode implements Node {
     private static int port;
 
     private TCPSender tcpSender;
+
+    private TCPReceiverThread tcpReceiverThread;
 
     private String inetAddress;
 
@@ -65,13 +69,15 @@ public class MessagingNode implements Node {
 
         try {
             Socket socket = new Socket(registryHost, registryPort);
+            tcpReceiverThread = new TCPReceiverThread(this, socket);
+            new Thread(tcpReceiverThread).start();
             tcpSender = new TCPSender(socket);
 
             byte[] wrappedData = EventFactory.createRegisterRequest(inetAddress, registryPort)
                     .getBytes();
 
             tcpSender.sendData(wrappedData);
-            tcpSender.closeSocket();
+
         } catch (UnknownHostException e) {
             System.out.println("Unknown host: kq6py");
             System.exit(1);
@@ -103,6 +109,10 @@ public class MessagingNode implements Node {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void exit() {
+        System.exit(0);
     }
 
     @Override

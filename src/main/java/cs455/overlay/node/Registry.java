@@ -1,10 +1,14 @@
 package cs455.overlay.node;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 
+import cs455.overlay.transport.TCPSender;
 import cs455.overlay.transport.TCPServerThread;
+import cs455.overlay.wireformats.Event;
+import cs455.overlay.wireformats.EventFactory;
 
 public class Registry implements Node {
     private static final String LIST_MESSAGING_NODES_COMMAND = "list-messaging nodes";
@@ -17,7 +21,7 @@ public class Registry implements Node {
 
     private static final String START_COMMAND = "start";
 
-    private TCPServerThread tcpServerThread;
+    private static TCPServerThread tcpServerThread;
 
     private static ConcurrentHashMap<String, Integer> registeredNodes;
 
@@ -88,19 +92,53 @@ public class Registry implements Node {
             return;
         }
 
+        Event event;
         if(!registeredNodes.containsKey(ip)) {
             System.out.println("Registering : " + ip + " " + port);
             registeredNodes.put(ip, port);
+            byte statusCode = 1;
+             event = EventFactory.createRegisterRespone(statusCode, "Registration request "
+                    + "successful. The number of messaging nodes currently constituting the overlay is "
+                    + registeredNodes.size());
+
 
         } else {
             System.out.println("Node already registered : " + ip + " " + port);
+            byte statusCode = 0;
+            event = EventFactory.createRegisterRespone(statusCode, "Registration request "
+                    + "unsuccessful. The number of messaging nodes currently constituting the overlay is "
+                    + registeredNodes.size());
+        }
+
+        sendEventToIp(ip, event);
+    }
+
+    private static void sendEventToIp(String ip, Event event) {
+        try {
+            TCPSender tcpSender = new TCPSender(tcpServerThread.getSocket(ip));
+            tcpSender.sendData(event.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    public static void deRegisterNode(String ip, int port) {
+    public static void deRegisterNode(String ip) {
+        Event event;
+
         if(registeredNodes.containsKey(ip)) {
+            System.out.println("deregistering " + ip);
             registeredNodes.remove(ip);
+            byte statusCode = 1;
+            event = EventFactory.createDeregisterResponse(statusCode,  "Deregistration request "
+                    + "successful. The number of messaging nodes currently constituting the overlay is "
+                    + registeredNodes.size());
+        } else {
+            byte statusCode = 0;
+            event = EventFactory.createDeregisterResponse(statusCode,  "Deregistration request "
+                    + "unsuccessful. The number of messaging nodes currently constituting the overlay is "
+                    + registeredNodes.size());
         }
+        sendEventToIp(ip, event);
     }
 
     /**

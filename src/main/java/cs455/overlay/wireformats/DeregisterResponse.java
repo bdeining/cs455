@@ -6,20 +6,19 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public class RegisterResponse implements Event {
-
-    private static final int type = 3;
+public class DeregisterResponse implements Event {
+    private static final int type = 4;
 
     private String additionalInfo;
 
     private byte statusCode;
 
-    public RegisterResponse(byte statusCode, String additionalInfo) {
+    public DeregisterResponse(byte statusCode, String additionalInfo) {
         this.statusCode = statusCode;
         this.additionalInfo = additionalInfo;
     }
 
-    public RegisterResponse(byte[] bytes) throws IOException {
+    public DeregisterResponse(byte[] bytes) throws IOException {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
         DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
 

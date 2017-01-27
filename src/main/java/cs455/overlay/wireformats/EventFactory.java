@@ -18,10 +18,17 @@ public class EventFactory {
         return new RegisterRequest(address, port);
     }
 
-    public static Event createDeregisterRequest(String address, int port) {
-        return new Deregister(address, port);
+    public static Event createRegisterRespone(byte statusCode, String additionalInformation) {
+        return new RegisterResponse(statusCode, additionalInformation);
     }
 
+    public static Event createDeregisterResponse(byte statusCode, String additionalInformation) {
+        return new DeregisterResponse(statusCode, additionalInformation);
+    }
+
+    public static Event createDeregisterRequest(String address, int port) {
+        return new DeregisterRequest(address, port);
+    }
 
     public static Event createEvent(int type, byte[] bytes) {
 
@@ -34,7 +41,7 @@ public class EventFactory {
                 event = new RegisterRequest(bytes);
                 break;
             case 2:
-                event = new Deregister(bytes);
+                event = new DeregisterRequest(bytes);
                 break;
             case 3:
                 event = new RegisterResponse(bytes);

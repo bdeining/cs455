@@ -49,6 +49,7 @@ public class RegisterRequest implements Event {
 
         dataOutputStream.flush();
         dataOutputStream.close();
+        byteArrayOutputStream.close();
         return byteArrayOutputStream.toByteArray();
     }
 

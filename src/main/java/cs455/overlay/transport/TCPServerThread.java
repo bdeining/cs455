@@ -3,18 +3,17 @@ package cs455.overlay.transport;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import cs455.overlay.node.Node;
-import cs455.overlay.node.Registry;
 
 public class TCPServerThread implements Runnable {
 
     private int portNum;
 
-    private List<Socket> socketList;
+    private Map<String, Socket> socketMap;
 
     private Node node;
 
@@ -22,7 +21,7 @@ public class TCPServerThread implements Runnable {
 
     public TCPServerThread(Node node, int portNum) {
         this.node = node;
-        socketList = new ArrayList<>();
+        socketMap = new ConcurrentHashMap<>();
 
         this.portNum = portNum;
         try {
@@ -37,12 +36,18 @@ public class TCPServerThread implements Runnable {
         while (true) {
             try {
                 Socket client = serverSocket.accept();
-                socketList.add(client);
+                socketMap.put(client.getInetAddress()
+                        .toString(), client);
                 TCPReceiverThread tcpReceiverThread = new TCPReceiverThread(node, client);
                 new Thread(tcpReceiverThread).start();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    public Socket getSocket(String ip) {
+        System.out.println(ip + socketMap.get(ip));
+        return socketMap.get(ip);
     }
 }

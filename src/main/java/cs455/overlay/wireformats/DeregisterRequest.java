@@ -6,19 +6,19 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public class Deregister implements Event {
+public class DeregisterRequest implements Event {
     private static final int type = 2;
 
     private String ipAddress;
 
     private int port;
 
-    public Deregister(String ipAddress, int port) {
+    public DeregisterRequest(String ipAddress, int port) {
         this.ipAddress = ipAddress;
         this.port = port;
     }
 
-    public Deregister(byte[] bytes) throws IOException {
+    public DeregisterRequest(byte[] bytes) throws IOException {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
         DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
         // ignore type
@@ -49,6 +49,7 @@ public class Deregister implements Event {
 
         dataOutputStream.flush();
         dataOutputStream.close();
+        byteArrayOutputStream.close();
         return byteArrayOutputStream.toByteArray();
     }
 
