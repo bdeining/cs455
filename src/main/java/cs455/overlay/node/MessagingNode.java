@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Scanner;
 
 import cs455.overlay.transport.TCPSender;
 import cs455.overlay.wireformats.Event;
@@ -25,14 +26,30 @@ public class MessagingNode implements Node {
             System.out.println("Not enough args");
         }
 
-        System.out.println(args[0]);
-        System.out.println(args[1]);
+        MessagingNode messagingNode = null;
+
         try {
             String registryHost = args[0];
             port = Integer.parseInt(args[1]);
-            new MessagingNode(registryHost, port);
+            messagingNode = new MessagingNode(registryHost, port);
         } catch (NumberFormatException e) {
             e.printStackTrace();
+        }
+
+        if(messagingNode == null) {
+            System.out.println("Messaging node not set up");
+            return;
+        }
+
+        Scanner scanner = new Scanner(System.in);
+        while(scanner.hasNext()) {
+            String command = scanner.nextLine();
+
+            if (command.equals(PRINT_SHORTEST_PATH_COMMAND)) {
+                messagingNode.printShortestPath();
+            } else if(command.equals(EXIT_OVERLAY_COMMAND)) {
+                messagingNode.exitOverlay();
+            }
         }
     }
 
@@ -44,7 +61,7 @@ public class MessagingNode implements Node {
             e.printStackTrace();
         }
 
-        System.out.println(inetAddress.toString());
+        System.out.println(inetAddress);
 
         try {
             Socket socket = new Socket(registryHost, registryPort);
