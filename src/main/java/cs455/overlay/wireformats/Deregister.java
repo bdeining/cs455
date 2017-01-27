@@ -7,7 +7,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class Deregister implements Event {
-    private int type;
+    private static final int type = 2;
 
     private String ipAddress;
 
@@ -16,13 +16,13 @@ public class Deregister implements Event {
     public Deregister(String ipAddress, int port) {
         this.ipAddress = ipAddress;
         this.port = port;
-        this.type = 2;
     }
 
     public Deregister(byte[] bytes) throws IOException {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
         DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
-        type = dataInputStream.readInt();
+        // ignore type
+        int type = dataInputStream.readInt();
         int elementLength = dataInputStream.readInt();
         byte[] ipAddressBytes = new byte[elementLength];
         dataInputStream.read(ipAddressBytes, 0, elementLength);

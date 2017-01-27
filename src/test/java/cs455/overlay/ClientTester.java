@@ -17,7 +17,6 @@ public class ClientTester {
     public void testMessagingNode() {
         MessagingNodeWrapper messagingNodeWrapper = new MessagingNodeWrapper("localhost", 50000);
         messagingNodeWrapper.run();
-
     }
 
     @Test

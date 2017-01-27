@@ -1,19 +1,12 @@
 package cs455.overlay.node;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 
 import cs455.overlay.transport.TCPServerThread;
 
-public class Registry {
-
-    private TCPServerThread tcpServerThread;
-
-    private static ConcurrentHashMap<String, Integer> registeredNodes;
-
+public class Registry implements Node {
     private static final String LIST_MESSAGING_NODES_COMMAND = "list-messaging nodes";
 
     private static final String LIST_WEIGHTS_COMMAND = "list-weights";
@@ -23,6 +16,10 @@ public class Registry {
     private static final String SEND_OVERLAY_LINK_WEIGHTS_COMMAND = "send-overlay-link-weights";
 
     private static final String START_COMMAND = "start";
+
+    private TCPServerThread tcpServerThread;
+
+    private static ConcurrentHashMap<String, Integer> registeredNodes;
 
     public static void main(String[] args) {
         if(args.length != 1) {
@@ -45,57 +42,64 @@ public class Registry {
         while(scanner.hasNext()) {
             String command = scanner.nextLine();
 
-            if (command.contains(LIST_MESSAGING_NODES_COMMAND)) {
-                String[] strings = command.substring(LIST_MESSAGING_NODES_COMMAND.length()).split(
-                        " ");
-                if(strings.length == 0) {
-                    continue;
-                }
-
-                registry.listMessagingNodes(new ArrayList<>(Arrays.asList(strings)));
-            } else if(command.contains(LIST_WEIGHTS_COMMAND)) {
+            if (command.equals(LIST_MESSAGING_NODES_COMMAND)) {
+                registry.listMessagingNodes();
+            } else if(command.equals(LIST_WEIGHTS_COMMAND)) {
                 registry.listWeights();
             } else if(command.contains(SETUP_OVERLAY_COMMAND)) {
-                String[] strings = command.split(" ");
-                if(strings.length != 2) {
-                    continue;
+                Integer integer = parseCommandInteger(command);
+                if (integer != null) {
+                    registry.setupOverlay(integer);
                 }
-                // TODO check number
-                registry.setupOverlay(Integer.parseInt(strings[1]));
-            } else if(command.contains(SEND_OVERLAY_LINK_WEIGHTS_COMMAND)) {
+            } else if(command.equals(SEND_OVERLAY_LINK_WEIGHTS_COMMAND)) {
                 registry.sendOverlayLinkWeights();
             } else if(command.contains(START_COMMAND)) {
-                String[] strings = command.split(" ");
-                System.out.println(command);
-                if(strings.length != 2) {
-                    continue;
+                Integer integer = parseCommandInteger(command);
+                if (integer != null) {
+                    registry.start(integer);
                 }
-                // TODO check number
-                registry.start(Integer.parseInt(strings[1]));
+
             }
         }
     }
 
-    public Registry(int portnum) {
-        registeredNodes = new ConcurrentHashMap<>();
-        tcpServerThread = new TCPServerThread(portnum);
-
-        new Thread(tcpServerThread).start();
-//        tcpServerThread.run();
-        //tcpServerThread.run();
+    private static Integer parseCommandInteger(String command) {
+        Integer integer = null;
+        String[] strings = command.split(" ");
+        if(strings.length == 2) {
+            try {
+                integer = Integer.parseInt(strings[1]);
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+        }
+        return integer;
     }
 
-    public static void registerNode(Node node) {
+    public Registry(int portnum) {
+        registeredNodes = new ConcurrentHashMap<>();
+        tcpServerThread = new TCPServerThread(this, portnum);
+
+        new Thread(tcpServerThread).start();
+    }
+
+    public static void registerNode(String ip, int port) {
         if(registeredNodes == null) {
             return;
         }
 
-        if(!registeredNodes.containsKey(node.getHostname())) {
-            System.out.println("Registering : " + node.getHostname() + " " + node.getPort());
-            registeredNodes.put(node.getHostname(), node.getPort());
+        if(!registeredNodes.containsKey(ip)) {
+            System.out.println("Registering : " + ip + " " + port);
+            registeredNodes.put(ip, port);
 
         } else {
-            System.out.println("Node already registered : " + node.getHostname() + " " + node.getPort());
+            System.out.println("Node already registered : " + ip + " " + port);
+        }
+    }
+
+    public static void deRegisterNode(String ip, int port) {
+        if(registeredNodes.containsKey(ip)) {
+            registeredNodes.remove(ip);
         }
     }
 
@@ -103,8 +107,10 @@ public class Registry {
      * This should result in information about the messaging nodes (hostname, and port-number) being
      * listed. Information for each messaging node should be listed on a separate line.
      **/
-    public void listMessagingNodes(List<String> nodes) {
-        System.out.println("list nodes : " + nodes.toString());
+    public void listMessagingNodes() {
+        for (Map.Entry<String, Integer> entry : registeredNodes.entrySet()) {
+            System.out.println(entry.getKey() + ":" + entry.getValue());
+        }
     }
 
     /**
@@ -157,6 +163,16 @@ public class Registry {
      */
     public void start(int numberOfRounds) {
         System.out.println("starting : number of rounds " + numberOfRounds);
+    }
+
+    @Override
+    public String getHostname() {
+        return null;
+    }
+
+    @Override
+    public int getPort() {
+        return 0;
     }
 }
 

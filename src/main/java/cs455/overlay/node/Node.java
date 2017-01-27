@@ -1,21 +1,8 @@
 package cs455.overlay.node;
 
-public class Node {
+public interface Node {
 
-    private String hostname;
+    String getHostname();
 
-    private int port;
-
-    public Node(String hostname, int port) {
-        this.hostname = hostname;
-        this.port = port;
-    }
-
-    public String getHostname() {
-        return hostname;
-    }
-
-    public int getPort() {
-        return port;
-    }
+    int getPort();
 }

@@ -33,6 +33,12 @@ public class EventFactory {
             case 1:
                 event = new RegisterRequest(bytes);
                 break;
+            case 2:
+                event = new Deregister(bytes);
+                break;
+            case 3:
+                event = new RegisterResponse(bytes);
+                break;
 
             default:
                 event = null;
