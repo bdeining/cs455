@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.List;
 import java.util.Scanner;
 
 import cs455.overlay.transport.TCPReceiverThread;
@@ -19,9 +20,9 @@ public class MessagingNode implements Node {
 
     private static int port;
 
-    private TCPSender tcpSender;
+    private int listeningPort;
 
-    private TCPReceiverThread tcpReceiverThread;
+    private TCPSender tcpSender;
 
     private String inetAddress;
 
@@ -40,18 +41,18 @@ public class MessagingNode implements Node {
             e.printStackTrace();
         }
 
-        if(messagingNode == null) {
+        if (messagingNode == null) {
             System.out.println("Messaging node not set up");
             return;
         }
 
         Scanner scanner = new Scanner(System.in);
-        while(scanner.hasNext()) {
+        while (scanner.hasNext()) {
             String command = scanner.nextLine();
 
             if (command.equals(PRINT_SHORTEST_PATH_COMMAND)) {
                 messagingNode.printShortestPath();
-            } else if(command.equals(EXIT_OVERLAY_COMMAND)) {
+            } else if (command.equals(EXIT_OVERLAY_COMMAND)) {
                 messagingNode.exitOverlay();
             }
         }
@@ -65,11 +66,14 @@ public class MessagingNode implements Node {
             e.printStackTrace();
         }
 
-        System.out.println(inetAddress);
+        TCPServerThread tcpServerThread = new TCPServerThread(this, 0);
+        new Thread(tcpServerThread).start();
+        //TODO refactor port stuff
+        listeningPort = tcpServerThread.getPort();
 
         try {
             Socket socket = new Socket(registryHost, registryPort);
-            tcpReceiverThread = new TCPReceiverThread(this, socket);
+            TCPReceiverThread tcpReceiverThread = new TCPReceiverThread(this, socket);
             new Thread(tcpReceiverThread).start();
             tcpSender = new TCPSender(socket);
 
@@ -80,10 +84,9 @@ public class MessagingNode implements Node {
 
         } catch (UnknownHostException e) {
             System.out.println("Unknown host: kq6py");
-            System.exit(1);
         } catch (IOException e) {
             System.out.println("No I/O");
-            System.exit(1);
+
         }
 
     }
@@ -111,8 +114,34 @@ public class MessagingNode implements Node {
         }
     }
 
-    public static void exit() {
+    public void exit() {
         System.exit(0);
+    }
+
+    public void setupMessagingNodeLinks(List<String> nodes) {
+        for (String node : nodes) {
+            System.out.println("set up " + node);
+
+            String[] strings = node.split(":");
+            if (strings.length != 2) {
+                continue;
+            }
+
+            int port;
+            try {
+                port = Integer.parseInt(strings[1]);
+            } catch (NumberFormatException e) {
+                continue;
+            }
+
+            try {
+                Socket socket = new Socket(strings[0], port);
+                TCPReceiverThread tcpReceiverThread = new TCPReceiverThread(this, socket);
+                new Thread(tcpReceiverThread).start();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override

@@ -27,6 +27,10 @@ public class TCPServerThread implements Runnable {
         }
     }
 
+    public int getPort() {
+        return serverSocket.getLocalPort();
+    }
+
     @Override
     public void run() {
         while (true) {

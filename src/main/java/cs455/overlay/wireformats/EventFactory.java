@@ -1,6 +1,7 @@
 package cs455.overlay.wireformats;
 
 import java.io.IOException;
+import java.util.List;
 
 public class EventFactory {
 
@@ -30,6 +31,10 @@ public class EventFactory {
         return new DeregisterRequest(address, port);
     }
 
+    public static Event createMessagingNodeList(int numberOfPeers, List<String> messagingList) {
+        return new MessagingNodesList(numberOfPeers, messagingList);
+    }
+
     public static Event createEvent(int type, byte[] bytes) {
 
         Event event = null;
@@ -46,7 +51,12 @@ public class EventFactory {
             case 3:
                 event = new RegisterResponse(bytes);
                 break;
-
+            case 4:
+                event = new DeregisterResponse(bytes);
+                break;
+            case 5:
+                event = new MessagingNodesList(bytes);
+                break;
             default:
                 event = null;
             }

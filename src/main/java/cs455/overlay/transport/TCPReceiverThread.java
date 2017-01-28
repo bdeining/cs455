@@ -4,12 +4,15 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
 
 import cs455.overlay.node.MessagingNode;
 import cs455.overlay.node.Node;
 import cs455.overlay.node.Registry;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.EventFactory;
+import cs455.overlay.wireformats.MessagingNodesList;
+import cs455.overlay.wireformats.RegisterRequest;
 
 public class TCPReceiverThread implements Runnable {
 
@@ -42,12 +45,13 @@ public class TCPReceiverThread implements Runnable {
                 switch (type) {
                 case 1:
                     if(node instanceof Registry) {
-                        Registry.registerNode(socket);
+                        ((Registry)node).registerNode(socket,
+                                ((RegisterRequest) event).getIpAddress());
                     }
                     break;
                 case 2:
                     if(node instanceof Registry) {
-                        Registry.deRegisterNode(socket);
+                        ((Registry)node).deRegisterNode(socket);
                     }
                     break;
                 case 3:
@@ -56,10 +60,13 @@ public class TCPReceiverThread implements Runnable {
 
                 case 4:
                     if(node instanceof MessagingNode) {
-                        MessagingNode.exit();
+                        ((MessagingNode)node).exit();
                     }
                     break;
-
+                case 5:
+                    if(node instanceof MessagingNode) {
+                        ((MessagingNode)node).setupMessagingNodeLinks(((MessagingNodesList)event).getMessagingNodes());
+                    }
                 }
 
             } catch (SocketException e) {
