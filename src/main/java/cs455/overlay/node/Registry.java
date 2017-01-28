@@ -1,6 +1,10 @@
 package cs455.overlay.node;
 
 import java.io.IOException;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,7 +27,7 @@ public class Registry implements Node {
 
     private static TCPServerThread tcpServerThread;
 
-    private static ConcurrentHashMap<String, Integer> registeredNodes;
+    private static ConcurrentHashMap<String, List<Socket>> registeredNodes;
 
     public static void main(String[] args) {
         if(args.length != 1) {
@@ -87,15 +91,20 @@ public class Registry implements Node {
         new Thread(tcpServerThread).start();
     }
 
-    public static void registerNode(String ip, int port) {
+    public static void registerNode(Socket socket) {
         if(registeredNodes == null) {
             return;
         }
 
+        String ip = socket.getInetAddress().toString();
+        Integer port = socket.getPort();
+
         Event event;
         if(!registeredNodes.containsKey(ip)) {
-            System.out.println("Registering : " + ip + " " + port);
-            registeredNodes.put(ip, port);
+            List<Socket> sockets = new ArrayList<>();
+            sockets.add(socket);
+            registeredNodes.put(ip, sockets);
+
             byte statusCode = 1;
              event = EventFactory.createRegisterRespone(statusCode, "Registration request "
                     + "successful. The number of messaging nodes currently constituting the overlay is "
@@ -103,42 +112,74 @@ public class Registry implements Node {
 
 
         } else {
-            System.out.println("Node already registered : " + ip + " " + port);
-            byte statusCode = 0;
-            event = EventFactory.createRegisterRespone(statusCode, "Registration request "
-                    + "unsuccessful. The number of messaging nodes currently constituting the overlay is "
-                    + registeredNodes.size());
-        }
+            List<Socket> sockets = registeredNodes.get(ip);
+            if (sockets.contains(socket)) {
+                System.out.println("Node already registered : " + ip + " " + port);
+                byte statusCode = 0;
+                event = EventFactory.createRegisterRespone(statusCode, "Registration request "
+                        + "unsuccessful. The number of messaging nodes currently constituting the overlay is "
+                        + registeredNodes.size());
+            } else {
+                sockets.add(socket);
+                registeredNodes.put(ip, sockets);
+                byte statusCode = 1;
+                event = EventFactory.createRegisterRespone(statusCode, "Registration request "
+                        + "successful. The number of messaging nodes currently constituting the overlay is "
+                        + registeredNodes.size());
+            }
 
-        sendEventToIp(ip, event);
+        }
+        printRegisteredNodes();
+        sendEventToIp(socket, event);
     }
 
-    private static void sendEventToIp(String ip, Event event) {
+    private static void printRegisteredNodes() {
+        System.out.println(registeredNodes.toString());
+    }
+
+    private static void sendEventToIp(Socket socket, Event event) {
         try {
-            TCPSender tcpSender = new TCPSender(tcpServerThread.getSocket(ip));
+            TCPSender tcpSender = new TCPSender(socket);
             tcpSender.sendData(event.getBytes());
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static void deRegisterNode(String ip) {
+    public static void deRegisterNode(Socket socket) {
         Event event;
+        String ip = socket.getInetAddress().toString();
+        Integer port = socket.getPort();
 
         if(registeredNodes.containsKey(ip)) {
-            System.out.println("deregistering " + ip);
-            registeredNodes.remove(ip);
-            byte statusCode = 1;
-            event = EventFactory.createDeregisterResponse(statusCode,  "Deregistration request "
-                    + "successful. The number of messaging nodes currently constituting the overlay is "
-                    + registeredNodes.size());
+            List<Socket> sockets = registeredNodes.get(ip);
+            if(sockets.contains(socket)) {
+                System.out.println("deregistering " + ip);
+                if(sockets.size() == 1) {
+                    registeredNodes.remove(ip);
+                } else {
+                    sockets.remove(socket);
+                    registeredNodes.put(ip, sockets);
+                }
+                byte statusCode = 1;
+                event = EventFactory.createDeregisterResponse(statusCode,  "Deregistration request "
+                        + "successful. The number of messaging nodes currently constituting the overlay is "
+                        + registeredNodes.size());
+            } else {
+                byte statusCode = 0;
+                event = EventFactory.createDeregisterResponse(statusCode,  "Deregistration request "
+                        + "unsuccessful. The number of messaging nodes currently constituting the overlay is "
+                        + registeredNodes.size());
+            }
         } else {
             byte statusCode = 0;
             event = EventFactory.createDeregisterResponse(statusCode,  "Deregistration request "
                     + "unsuccessful. The number of messaging nodes currently constituting the overlay is "
                     + registeredNodes.size());
         }
-        sendEventToIp(ip, event);
+
+
+        sendEventToIp(socket, event);
     }
 
     /**
@@ -146,8 +187,11 @@ public class Registry implements Node {
      * listed. Information for each messaging node should be listed on a separate line.
      **/
     public void listMessagingNodes() {
-        for (Map.Entry<String, Integer> entry : registeredNodes.entrySet()) {
-            System.out.println(entry.getKey() + ":" + entry.getValue());
+        for (Map.Entry<String, List<Socket>> entry : registeredNodes.entrySet()) {
+            for(Socket socket: entry.getValue()) {
+                System.out.println(socket.getInetAddress().toString() + ":" + socket.getPort());
+            }
+
         }
     }
 

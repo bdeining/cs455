@@ -42,12 +42,12 @@ public class TCPReceiverThread implements Runnable {
                 switch (type) {
                 case 1:
                     if(node instanceof Registry) {
-                        Registry.registerNode(socket.getInetAddress().toString(), socket.getPort());
+                        Registry.registerNode(socket);
                     }
                     break;
                 case 2:
                     if(node instanceof Registry) {
-                        Registry.deRegisterNode(socket.getInetAddress().toString());
+                        Registry.deRegisterNode(socket);
                     }
                     break;
                 case 3:
