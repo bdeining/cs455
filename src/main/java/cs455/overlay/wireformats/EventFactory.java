@@ -35,6 +35,14 @@ public class EventFactory {
         return new MessagingNodesList(numberOfPeers, messagingList);
     }
 
+    public static Event createMessage(int payload, String source, String destination) {
+        return new Message(payload, source, destination);
+    }
+
+    public static Event createTaskInitiate(int numberOfRounds) {
+        return new TaskInitiate(numberOfRounds);
+    }
+
     public static Event createEvent(int type, byte[] bytes) {
 
         Event event = null;
@@ -56,6 +64,12 @@ public class EventFactory {
                 break;
             case 5:
                 event = new MessagingNodesList(bytes);
+                break;
+            case 6:
+                event = new Message(bytes);
+                break;
+            case 7:
+                event = new TaskInitiate(bytes);
                 break;
             default:
                 event = null;

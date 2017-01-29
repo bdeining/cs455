@@ -6,32 +6,27 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public class DeregisterRequest implements Event {
-    private static final int type = 2;
+public class TaskInitiate implements Event {
+    private static final int type = 7;
 
-    private String ipAddress;
+    private int numberOfRounds;
 
-    private int port;
-
-    public DeregisterRequest(String ipAddress, int port) {
-        this.ipAddress = ipAddress;
-        this.port = port;
+    public TaskInitiate(int numberOfRounds) {
+        this.numberOfRounds = numberOfRounds;
     }
 
-    public DeregisterRequest(byte[] bytes) throws IOException {
+    public TaskInitiate(byte[] bytes) throws IOException {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
         DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
+
         // ignore type
         int type = dataInputStream.readInt();
-        int elementLength = dataInputStream.readInt();
-        byte[] ipAddressBytes = new byte[elementLength];
-        dataInputStream.read(ipAddressBytes, 0, elementLength);
-        ipAddress = new String(ipAddressBytes);
-        port = dataInputStream.readInt();
+
+        numberOfRounds = dataInputStream.readInt();
+
         printDetails();
         dataInputStream.close();
         byteArrayInputStream.close();
-
     }
 
     @Override
@@ -39,12 +34,7 @@ public class DeregisterRequest implements Event {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
         dataOutputStream.writeInt(type);
-
-        byte[] element = ipAddress.getBytes();
-
-        dataOutputStream.writeInt(element.length);
-        dataOutputStream.write(element);
-        dataOutputStream.writeInt(port);
+        dataOutputStream.writeInt(numberOfRounds);
 
         dataOutputStream.flush();
         dataOutputStream.close();
@@ -54,20 +44,14 @@ public class DeregisterRequest implements Event {
 
     @Override
     public int getType() {
-        return type;
+        return 0;
     }
 
-    public int getPort() {
-        return port;
+    public int getNumberOfRounds() {
+        return numberOfRounds;
     }
 
-    public String getIpAddress() {
-        return ipAddress;
-    }
-
-    private void printDetails() {
-        System.out.println(type);
-        System.out.println(ipAddress);
-        System.out.println(port);
+    public void printDetails() {
+        System.out.println(numberOfRounds);
     }
 }

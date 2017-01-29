@@ -4,15 +4,16 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.ArrayList;
 
 import cs455.overlay.node.MessagingNode;
 import cs455.overlay.node.Node;
 import cs455.overlay.node.Registry;
+import cs455.overlay.wireformats.DeregisterRequest;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.EventFactory;
 import cs455.overlay.wireformats.MessagingNodesList;
 import cs455.overlay.wireformats.RegisterRequest;
+import cs455.overlay.wireformats.TaskInitiate;
 
 public class TCPReceiverThread implements Runnable {
 
@@ -31,7 +32,7 @@ public class TCPReceiverThread implements Runnable {
     @Override
     public void run() {
 
-        while(socket != null) {
+        while (socket != null) {
             try {
                 int dataLength = dataInputStream.readInt();
 
@@ -44,14 +45,17 @@ public class TCPReceiverThread implements Runnable {
 
                 switch (type) {
                 case 1:
-                    if(node instanceof Registry) {
-                        ((Registry)node).registerNode(socket,
-                                ((RegisterRequest) event).getIpAddress());
+                    if (node instanceof Registry) {
+                        RegisterRequest registerRequest = (RegisterRequest) event;
+                        ((Registry) node).registerNode(socket,
+                                registerRequest.getIpAddress(),
+                                registerRequest.getPort());
                     }
                     break;
                 case 2:
-                    if(node instanceof Registry) {
-                        ((Registry)node).deRegisterNode(socket);
+                    if (node instanceof Registry) {
+                        DeregisterRequest deregisterRequest = (DeregisterRequest) event;
+                        ((Registry) node).deRegisterNode(socket, deregisterRequest.getPort());
                     }
                     break;
                 case 3:
@@ -59,14 +63,26 @@ public class TCPReceiverThread implements Runnable {
                     break;
 
                 case 4:
-                    if(node instanceof MessagingNode) {
-                        ((MessagingNode)node).exit();
+                    if (node instanceof MessagingNode) {
+                        ((MessagingNode) node).exit();
                     }
                     break;
                 case 5:
-                    if(node instanceof MessagingNode) {
-                        ((MessagingNode)node).setupMessagingNodeLinks(((MessagingNodesList)event).getMessagingNodes());
+                    if (node instanceof MessagingNode) {
+                        ((MessagingNode) node).setupMessagingNodeLinks(((MessagingNodesList) event).getMessagingNodes());
                     }
+                    break;
+                case 6:
+                    if (node instanceof MessagingNode) {
+                        ((MessagingNode) node).processMessage(event);
+                    }
+                    break;
+                case 7:
+                    if (node instanceof MessagingNode) {
+                        TaskInitiate taskInitiate = (TaskInitiate) event;
+                        ((MessagingNode) node).startRounds(taskInitiate.getNumberOfRounds());
+                    }
+                    break;
                 }
 
             } catch (SocketException e) {
@@ -80,8 +96,9 @@ public class TCPReceiverThread implements Runnable {
     }
 
     private int readIntFromByteArray(byte[] data) {
-        int value = ((data[0] & 0xFF) << 24) | ((data[1] & 0xFF) << 16)
-                | ((data[2] & 0xFF) << 8) | (data[3] & 0xFF);
+        int value =
+                ((data[0] & 0xFF) << 24) | ((data[1] & 0xFF) << 16) | ((data[2] & 0xFF) << 8) | (
+                        data[3] & 0xFF);
         return value;
     }
 

@@ -64,4 +64,5 @@ public class RegisterResponse implements Event {
         System.out.println(statusCode);
         System.out.println(additionalInfo);
     }
+
 }

@@ -3,8 +3,6 @@ package cs455.overlay.node;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,10 +27,10 @@ public class Registry implements Node {
 
     private static TCPServerThread tcpServerThread;
 
-    private static ConcurrentHashMap<String, List<Socket>> registeredNodes;
+    private static ConcurrentHashMap<String, Connection> registeredNodes;
 
     public static void main(String[] args) {
-        if(args.length != 1) {
+        if (args.length != 1) {
             System.out.println("Invalid number of args");
         }
         Registry registry = null;
@@ -43,27 +41,27 @@ public class Registry implements Node {
             e.printStackTrace();
         }
 
-        if(registry == null) {
+        if (registry == null) {
             System.out.println("failed to set up registry");
             return;
         }
 
         Scanner scanner = new Scanner(System.in);
-        while(scanner.hasNext()) {
+        while (scanner.hasNext()) {
             String command = scanner.nextLine();
 
             if (command.equals(LIST_MESSAGING_NODES_COMMAND)) {
                 registry.listMessagingNodes();
-            } else if(command.equals(LIST_WEIGHTS_COMMAND)) {
+            } else if (command.equals(LIST_WEIGHTS_COMMAND)) {
                 registry.listWeights();
-            } else if(command.contains(SETUP_OVERLAY_COMMAND)) {
+            } else if (command.contains(SETUP_OVERLAY_COMMAND)) {
                 Integer integer = parseCommandInteger(command);
                 if (integer != null) {
                     registry.setupOverlay(integer);
                 }
-            } else if(command.equals(SEND_OVERLAY_LINK_WEIGHTS_COMMAND)) {
+            } else if (command.equals(SEND_OVERLAY_LINK_WEIGHTS_COMMAND)) {
                 registry.sendOverlayLinkWeights();
-            } else if(command.contains(START_COMMAND)) {
+            } else if (command.contains(START_COMMAND)) {
                 Integer integer = parseCommandInteger(command);
                 if (integer != null) {
                     registry.start(integer);
@@ -76,7 +74,7 @@ public class Registry implements Node {
     private static Integer parseCommandInteger(String command) {
         Integer integer = null;
         String[] strings = command.split(" ");
-        if(strings.length == 2) {
+        if (strings.length == 2) {
             try {
                 integer = Integer.parseInt(strings[1]);
             } catch (NumberFormatException e) {
@@ -93,48 +91,42 @@ public class Registry implements Node {
         new Thread(tcpServerThread).start();
     }
 
-    public void registerNode(Socket socket, String eventIp) {
-        if(registeredNodes == null) {
+    public void registerNode(Socket socket, String eventIp, int port) {
+        if (registeredNodes == null) {
             return;
         }
 
-        String ip = socket.getInetAddress().toString();
+        String ip = socket.getInetAddress()
+                .getHostAddress();
         Event event;
 
-        if(!eventIp.equals(ip)) {
+        System.out.println(eventIp + " = " + ip);
+
+        if (!eventIp.equals(ip)) {
             byte statusCode = 0;
-            event = EventFactory.createRegisterRespone(statusCode, "Registration request "
-                    + "unsuccessful. The number of messaging nodes currently constituting the overlay is "
-                    + registeredNodes.size());
+            event = EventFactory.createRegisterRespone(statusCode,
+                    "Registration request "
+                            + "unsuccessful. The number of messaging nodes currently constituting the overlay is "
+                            + registeredNodes.size());
             sendEventToIp(socket, event);
+
         }
 
-        if(!registeredNodes.containsKey(ip)) {
-            List<Socket> sockets = new ArrayList<>();
-            sockets.add(socket);
-            registeredNodes.put(ip, sockets);
+        if (!registeredNodes.containsKey(ip)) {
+            registeredNodes.put(ip + ":" + port, new Connection(socket, port));
 
             byte statusCode = 1;
-             event = EventFactory.createRegisterRespone(statusCode, "Registration request "
-                    + "successful. The number of messaging nodes currently constituting the overlay is "
-                    + registeredNodes.size());
-
+            event = EventFactory.createRegisterRespone(statusCode,
+                    "Registration request "
+                            + "successful. The number of messaging nodes currently constituting the overlay is "
+                            + registeredNodes.size());
 
         } else {
-            List<Socket> sockets = registeredNodes.get(ip);
-            if (sockets.contains(socket)) {
-                byte statusCode = 0;
-                event = EventFactory.createRegisterRespone(statusCode, "Registration request "
-                        + "unsuccessful. The number of messaging nodes currently constituting the overlay is "
-                        + registeredNodes.size());
-            } else {
-                sockets.add(socket);
-                registeredNodes.put(ip, sockets);
-                byte statusCode = 1;
-                event = EventFactory.createRegisterRespone(statusCode, "Registration request "
-                        + "successful. The number of messaging nodes currently constituting the overlay is "
-                        + registeredNodes.size());
-            }
+            byte statusCode = 0;
+            event = EventFactory.createRegisterRespone(statusCode,
+                    "Registration request "
+                            + "unsuccessful. The number of messaging nodes currently constituting the overlay is "
+                            + registeredNodes.size());
 
         }
         printRegisteredNodes();
@@ -154,37 +146,25 @@ public class Registry implements Node {
         }
     }
 
-    public void deRegisterNode(Socket socket) {
+    public void deRegisterNode(Socket socket, int port) {
         Event event;
-        String ip = socket.getInetAddress().toString();
+        String ip = socket.getInetAddress()
+                .getHostAddress() + ":" + port;
 
-        if(registeredNodes.containsKey(ip)) {
-            List<Socket> sockets = registeredNodes.get(ip);
-            if(sockets.contains(socket)) {
-                System.out.println("deregistering " + ip);
-                if(sockets.size() == 1) {
-                    registeredNodes.remove(ip);
-                } else {
-                    sockets.remove(socket);
-                    registeredNodes.put(ip, sockets);
-                }
-                byte statusCode = 1;
-                event = EventFactory.createDeregisterResponse(statusCode,  "Deregistration request "
-                        + "successful. The number of messaging nodes currently constituting the overlay is "
-                        + registeredNodes.size());
-            } else {
-                byte statusCode = 0;
-                event = EventFactory.createDeregisterResponse(statusCode,  "Deregistration request "
-                        + "unsuccessful. The number of messaging nodes currently constituting the overlay is "
-                        + registeredNodes.size());
-            }
+        if (registeredNodes.containsKey(ip)) {
+            registeredNodes.remove(socket);
+            byte statusCode = 1;
+            event = EventFactory.createDeregisterResponse(statusCode,
+                    "Deregistration request "
+                            + "successful. The number of messaging nodes currently constituting the overlay is "
+                            + registeredNodes.size());
         } else {
             byte statusCode = 0;
-            event = EventFactory.createDeregisterResponse(statusCode,  "Deregistration request "
-                    + "unsuccessful. The number of messaging nodes currently constituting the overlay is "
-                    + registeredNodes.size());
+            event = EventFactory.createDeregisterResponse(statusCode,
+                    "Deregistration request "
+                            + "unsuccessful. The number of messaging nodes currently constituting the overlay is "
+                            + registeredNodes.size());
         }
-
 
         sendEventToIp(socket, event);
     }
@@ -194,11 +174,11 @@ public class Registry implements Node {
      * listed. Information for each messaging node should be listed on a separate line.
      **/
     public void listMessagingNodes() {
-        for (Map.Entry<String, List<Socket>> entry : registeredNodes.entrySet()) {
-            for(Socket socket: entry.getValue()) {
-                System.out.println(socket.getInetAddress().toString() + ":" + socket.getPort());
-            }
-
+        for (Map.Entry<String, Connection> entry : registeredNodes.entrySet()) {
+            Socket socket = entry.getValue()
+                    .getSocket();
+            System.out.println(socket.getInetAddress()
+                    .getHostAddress() + ":" + socket.getPort());
         }
     }
 
@@ -214,16 +194,16 @@ public class Registry implements Node {
     }
 
     /**
-     *  This should result in the registry setting up the overlay. It does so by sending messaging nodes
-     *  messages containing information about the messaging nodes that it should connect to. The registry
-     *  tracks the connection counts for each messaging node and will send the MESSAGING_NODES_LIST
-     *  message (see Section 2.3) to every messaging node. A sample specification of this command is
-     *  setup-overlay 4 that will result in the creation of an overlay where each messaging node is
-     *  connected to exactly 4 other messaging nodes in the overlay. You should handle the error condition
-     *  where the number of messaging nodes is less than the connection limit that is specified.
-     *  NOTE: You are not required to deal with the case where a messaging node is added or removed after
-     *  the overlay has been set up. You must however deal with the case where a messaging node registers
-     *  and deregisters from the registry before the overlay is set up.
+     * This should result in the registry setting up the overlay. It does so by sending messaging nodes
+     * messages containing information about the messaging nodes that it should connect to. The registry
+     * tracks the connection counts for each messaging node and will send the MESSAGING_NODES_LIST
+     * message (see Section 2.3) to every messaging node. A sample specification of this command is
+     * setup-overlay 4 that will result in the creation of an overlay where each messaging node is
+     * connected to exactly 4 other messaging nodes in the overlay. You should handle the error condition
+     * where the number of messaging nodes is less than the connection limit that is specified.
+     * NOTE: You are not required to deal with the case where a messaging node is added or removed after
+     * the overlay has been set up. You must however deal with the case where a messaging node registers
+     * and deregisters from the registry before the overlay is set up.
      *
      * @param numberOfConnections
      */
@@ -238,17 +218,19 @@ public class Registry implements Node {
             return;
         }*/
 
-        Map<Socket, List<String>> sockets = new HashMap<>();
+        Map<Connection, List<String>> sockets = new HashMap<>();
         /* Map Sockets and List of Messaging Node Strings */
-        for (Map.Entry<String, List<Socket>> entry : registeredNodes.entrySet()) {
-            for(Socket socket : entry.getValue()) {
-                if (!socket.isClosed() && socket.isConnected()) {
-                    sockets.put(socket, new ArrayList<>());
-                }
+        for (Map.Entry<String, Connection> entry : registeredNodes.entrySet()) {
+
+            Connection connection = entry.getValue();
+            Socket socket = connection.getSocket();
+
+            if (!socket.isClosed() && socket.isConnected()) {
+                sockets.put(connection, new ArrayList<>());
             }
         }
 
-        List<Map.Entry<Socket, List<String>>> entryList = new ArrayList<>(sockets.entrySet());
+        List<Map.Entry<Connection, List<String>>> entryList = new ArrayList<>(sockets.entrySet());
 
         /* Linear Ring first.  Connection Pattern   */
         /*
@@ -263,16 +245,22 @@ public class Registry implements Node {
          */
 
         /* Connect first and last */
-        Map.Entry<Socket, List<String>> entry = entryList.get(0);
+        Map.Entry<Connection, List<String>> entry = entryList.get(0);
         List<String> list = entry.getValue();
-        Socket connectingSocket = entryList.get(entryList.size() -1 ).getKey();
-        list.add(connectingSocket.getInetAddress().getHostAddress() + ":" + connectingSocket.getPort());
+        Connection connectingSocket = entryList.get(entryList.size() - 1)
+                .getKey();
+        list.add(connectingSocket.getSocket()
+                .getInetAddress()
+                .getHostAddress() + ":" + connectingSocket.getPort());
 
-        for (int i=1; i< entryList.size()-1; i++) {
+        for (int i = 1; i < entryList.size() - 1; i++) {
             entry = entryList.get(i);
             list = entry.getValue();
-            connectingSocket = entryList.get(i-1).getKey();
-            list.add(connectingSocket.getInetAddress().getHostName() + ":" + connectingSocket.getPort());
+            connectingSocket = entryList.get(i - 1)
+                    .getKey();
+            list.add(connectingSocket.getSocket()
+                    .getInetAddress()
+                    .getHostAddress() + ":" + connectingSocket.getPort());
         }
 
         /*   Remaining connections  :  Loop through and connect
@@ -304,19 +292,19 @@ public class Registry implements Node {
 
 
         /* Print */
-        for(Map.Entry<Socket, List<String>> printlist : entryList) {
+        for (Map.Entry<Connection, List<String>> printlist : entryList) {
 
             List<String> stringList = new ArrayList<>();
-            for(String string : printlist.getValue()) {
+            for (String string : printlist.getValue()) {
                 stringList.add(string);
             }
-            Socket socket = printlist.getKey();
+            Connection socket = printlist.getKey();
             Event event = EventFactory.createMessagingNodeList(4, stringList);
-            sendEventToIp(socket, event);
+            sendEventToIp(socket.getSocket(), event);
 
-            System.out.println(printlist.getKey() + " : " + printlist.getValue().toString());
+            System.out.println(printlist.getKey() + " : " + printlist.getValue()
+                    .toString());
         }
-
 
     }
 
@@ -325,7 +313,6 @@ public class Registry implements Node {
      * command is issued once after the setup-overlay command has been issued. This also allows all
      * nodes in the system to be aware of not just all the nodes in the system, but also the complete set of
      * links in the system.
-     *
      */
     public void sendOverlayLinkWeights() {
         System.out.println("sending link weights");
@@ -337,6 +324,7 @@ public class Registry implements Node {
      * overlay will be responding for sending number-of-rounds messages. An advantage of this is that you
      * are able to debug your system with a smaller set of messages and verify correctness of your programs
      * across a wide range of values. A detailed description is provided in section 4 below.
+     *
      * @param numberOfRounds
      */
     public void start(int numberOfRounds) {

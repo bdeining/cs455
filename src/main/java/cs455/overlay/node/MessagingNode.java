@@ -6,6 +6,9 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import cs455.overlay.transport.TCPReceiverThread;
 import cs455.overlay.transport.TCPSender;
@@ -17,6 +20,18 @@ public class MessagingNode implements Node {
     private static final String PRINT_SHORTEST_PATH_COMMAND = "print-shortest-path";
 
     private static final String EXIT_OVERLAY_COMMAND = "exit-overlay";
+
+    private ConcurrentHashMap<String, Socket> connections;
+
+    private static final AtomicInteger SEND_TRACKER = new AtomicInteger(0);
+
+    private static final AtomicInteger RECIEVE_TRACKER = new AtomicInteger(0);
+
+    private static final AtomicInteger RELAY_TRACKER = new AtomicInteger(0);
+
+    private static final AtomicLong SEND_SUMMATION = new AtomicLong(0);
+
+    private static final AtomicLong RECIEVE_SUMMATION = new AtomicLong(0);
 
     private static int port;
 
@@ -59,9 +74,11 @@ public class MessagingNode implements Node {
     }
 
     public MessagingNode(String registryHost, int registryPort) {
+        connections = new ConcurrentHashMap<>();
+
         try {
             inetAddress = InetAddress.getLocalHost()
-                    .toString();
+                    .getHostAddress();
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
@@ -70,6 +87,7 @@ public class MessagingNode implements Node {
         new Thread(tcpServerThread).start();
         //TODO refactor port stuff
         listeningPort = tcpServerThread.getPort();
+        System.out.println(listeningPort);
 
         try {
             Socket socket = new Socket(registryHost, registryPort);
@@ -77,7 +95,7 @@ public class MessagingNode implements Node {
             new Thread(tcpReceiverThread).start();
             tcpSender = new TCPSender(socket);
 
-            byte[] wrappedData = EventFactory.createRegisterRequest(inetAddress, registryPort)
+            byte[] wrappedData = EventFactory.createRegisterRequest(inetAddress, listeningPort)
                     .getBytes();
 
             tcpSender.sendData(wrappedData);
@@ -106,7 +124,7 @@ public class MessagingNode implements Node {
      * terminating the process.
      */
     public void exitOverlay() {
-        Event event = EventFactory.createDeregisterRequest(inetAddress, port);
+        Event event = EventFactory.createDeregisterRequest(inetAddress, listeningPort);
         try {
             tcpSender.sendData(event.getBytes());
         } catch (IOException e) {
@@ -136,12 +154,26 @@ public class MessagingNode implements Node {
 
             try {
                 Socket socket = new Socket(strings[0], port);
+                connections.put(socket.getInetAddress()
+                        .getHostAddress(), socket);
                 TCPReceiverThread tcpReceiverThread = new TCPReceiverThread(this, socket);
                 new Thread(tcpReceiverThread).start();
+
+                TCPSender tcpSender = new TCPSender(socket);
+                tcpSender.sendData(EventFactory.createMessage(12, "source", "destination")
+                        .getBytes());
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void processMessage(Event event) {
+        System.out.println("Process message" + event);
+    }
+
+    public void startRounds(int numberOfRounds) {
+        System.out.println("Start + " + numberOfRounds);
     }
 
     @Override
