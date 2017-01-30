@@ -44,7 +44,7 @@ public class TaskInitiate implements Event {
 
     @Override
     public int getType() {
-        return 0;
+        return 7;
     }
 
     public int getNumberOfRounds() {
