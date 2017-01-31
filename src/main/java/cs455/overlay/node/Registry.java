@@ -3,12 +3,14 @@ package cs455.overlay.node;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 
+import cs455.overlay.graph.Graph;
 import cs455.overlay.transport.TCPSender;
 import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.wireformats.Event;
@@ -209,103 +211,12 @@ public class Registry implements Node {
      */
     public void setupOverlay(int numberOfConnections) {
         System.out.println("setup overlay + " + numberOfConnections);
+        List<String> registeredHosts = Collections.list(registeredNodes.keys());
+        Graph graph = new Graph(registeredHosts, numberOfConnections);
+        graph.generateConnectedGraph();
+        graph.randomlyAssignEdgeWeights();
 
-/*
- Flatten map first
- if(registeredNodes.size() < numberOfConnections) {
-            // Error message
-            System.out.println("Not enough nodes");
-            return;
-        }*/
-
-        Map<Connection, List<String>> sockets = new HashMap<>();
-        /* Map Sockets and List of Messaging Node Strings */
-        for (Map.Entry<String, Connection> entry : registeredNodes.entrySet()) {
-
-            Connection connection = entry.getValue();
-            Socket socket = connection.getSocket();
-
-            if (!socket.isClosed() && socket.isConnected()) {
-                sockets.put(connection, new ArrayList<>());
-            }
-        }
-
-        List<Map.Entry<Connection, List<String>>> entryList = new ArrayList<>(sockets.entrySet());
-
-        /* Linear Ring first.  Connection Pattern   */
-        /*
-                    A          B          C        D        E
-                             A - B      B - C    C - D    D - E
-                  A - E
-
-                            A     -    B
-                            |          |
-                            E  -  D  - C
-
-         */
-
-        /* Connect first and last */
-        Map.Entry<Connection, List<String>> entry = entryList.get(0);
-        List<String> list = entry.getValue();
-        Connection connectingSocket = entryList.get(entryList.size() - 1)
-                .getKey();
-        list.add(connectingSocket.getSocket()
-                .getInetAddress()
-                .getHostAddress() + ":" + connectingSocket.getPort());
-
-        for (int i = 1; i < entryList.size() - 1; i++) {
-            entry = entryList.get(i);
-            list = entry.getValue();
-            connectingSocket = entryList.get(i - 1)
-                    .getKey();
-            list.add(connectingSocket.getSocket()
-                    .getInetAddress()
-                    .getHostAddress() + ":" + connectingSocket.getPort());
-        }
-
-        /*   Remaining connections  :  Loop through and connect
-
-                    A          B          C        D        E
-                             A - B      B - C    C - D    D - E
-                  A - E
-
-                             B - D      C - A    D - A    E - B
-
-                                                          E - C
-
-                  Result :
-                    A          B          C        D        E
-                  A - E      B - A      C - B    D - C    E - D
-                  A - B      B - C      C - D    D - E    E - A
-                  A - C      B - D      C - A    D - B    E - B
-                  A - D      B - E      C - E    D - A    E - C
-
-
-                    A          B          C        D       E
-                  A - B     B - A       C - D    D - C   E - A
-                  A - C     B - C       C - A    D - A   E - B
-                  A - D     B - D       C - B    D - B   E - C
-                  A - E     B - E       C - E    D - E   E - D
-
-         */
-
-
-
-        /* Print */
-        for (Map.Entry<Connection, List<String>> printlist : entryList) {
-
-            List<String> stringList = new ArrayList<>();
-            for (String string : printlist.getValue()) {
-                stringList.add(string);
-            }
-            Connection socket = printlist.getKey();
-            Event event = EventFactory.createMessagingNodeList(4, stringList);
-            sendEventToIp(socket.getSocket(), event);
-
-            System.out.println(printlist.getKey() + " : " + printlist.getValue()
-                    .toString());
-        }
-
+//        System.out.println(graph.generateLinkWeightBody());
     }
 
     /**

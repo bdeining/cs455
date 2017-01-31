@@ -25,6 +25,17 @@ public class GraphTest {
         assertNodes(5);
     }
 
+    //TODO Mirror Link Weights
+
+
+    @Test
+    public void testLinkWeightBody() {
+        graph.generateConnectedGraph();
+        graph.randomlyAssignEdgeWeights();
+        graph.generateLinkWeightBody();
+        System.out.println(graph.generateLinkWeightBody());
+    }
+
     @Test
     public void testIsNotConnected() {
         assertThat(graph.isConnected(), is(false));

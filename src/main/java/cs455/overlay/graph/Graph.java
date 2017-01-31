@@ -49,6 +49,9 @@ public class Graph {
         randomlyConnectVertices();
     }
 
+    /**
+     * Generate a linear ring in the graph to ensure connectivity
+     */
     private void generateLinearRing() {
         adjacencyList.get(0)
                 .add(new Edge(0, adjacencyList.size() - 1));
@@ -62,6 +65,9 @@ public class Graph {
         }
     }
 
+    /**
+     * Randomly assign vertices until the number of connections specified is met
+     */
     private void randomlyConnectVertices() {
         for (int i = 0; i < adjacencyList.size(); i++) {
             while (!isConnectionLimitReached(i)) {
@@ -75,8 +81,8 @@ public class Graph {
         }
     }
 
-    private boolean isConnectionLimitReached(int vertext) {
-        if (adjacencyList.get(vertext)
+    private boolean isConnectionLimitReached(int vertex) {
+        if (adjacencyList.get(vertex)
                 .size() != numberOfConnections) {
             return false;
         }
@@ -108,6 +114,11 @@ public class Graph {
         }
     }
 
+    /**
+     * BFS to determine all nodes are visited
+     *
+     * @return true if the graph is connected
+     */
     public boolean isConnected() {
         int[] visited = new int[adjacencyList.size()];
         for (int i = 0; i < visited.length; i++) {
@@ -134,5 +145,25 @@ public class Graph {
             }
         }
         return true;
+    }
+
+    public String generateLinkWeightBody() {
+        StringBuilder stringBuilder = new StringBuilder();
+        for(int i=0; i<adjacencyList.size(); i++) {
+            String source = getMappedVertex(i);
+            List<Edge> edges = adjacencyList.get(i);
+            for(int c=0; c< edges.size(); c++) {
+                Edge edge = edges.get(c);
+                String destination = getMappedVertex(edge.getVertex());
+                stringBuilder.append(source);
+                stringBuilder.append(" ");
+                stringBuilder.append(destination);
+                stringBuilder.append(" ");
+                stringBuilder.append(edge.getWeight());
+                stringBuilder.append("\n");
+            }
+        }
+
+        return stringBuilder.toString();
     }
 }
