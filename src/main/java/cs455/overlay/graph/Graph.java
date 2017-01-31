@@ -65,11 +65,11 @@ public class Graph {
     private void randomlyConnectVertices() {
         for (int i = 0; i < adjacencyList.size(); i++) {
             while (!isConnectionLimitReached(i)) {
-                int vertex = getRandomVertex(i);
+                Edge vertex = getRandomVertex(i);
                 if (!adjacencyList.get(i)
                         .contains(vertex)) {
                     adjacencyList.get(i)
-                            .add(new Edge(0, vertex));
+                            .add(vertex);
                 }
             }
         }
@@ -83,7 +83,7 @@ public class Graph {
         return true;
     }
 
-    private int getRandomVertex(int vertex) {
+    private Edge getRandomVertex(int vertex) {
         int min = 0;
         int max = adjacencyList.size() - 1;
         int result = random.nextInt((max - min) + 1) + min;
@@ -91,12 +91,10 @@ public class Graph {
         while (vertex == result) {
             result = random.nextInt((max - min) + 1) + min;
         }
-        return result;
+        return new Edge(0, result);
     }
 
     private int getRandomEdgeWeight() {
-        int randomNumber = random.nextInt(11);
-        System.out.println(randomNumber);
         return random.nextInt(11);
     }
 

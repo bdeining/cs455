@@ -11,6 +11,22 @@ public class Edge {
         this.vertex = vertex;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (!Edge.class.isAssignableFrom(obj.getClass())) {
+            return false;
+        }
+
+        Edge other = (Edge) obj;
+        if (this.vertex != other.vertex) {
+            return false;
+        }
+        return true;
+    }
+
     public int getWeight() {
         return weight;
     }

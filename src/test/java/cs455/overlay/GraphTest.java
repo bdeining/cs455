@@ -9,6 +9,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
+import cs455.overlay.graph.Edge;
 import cs455.overlay.graph.Graph;
 
 public class GraphTest {
@@ -49,6 +50,24 @@ public class GraphTest {
         graph.generateConnectedGraph();
         assertThat(graph.isConnected(), is(true));
         assertNodes(100);
+    }
+
+    @Test
+    public void testIsConnected100Nodes10Connections() {
+        graph = new Graph(generateNodes(100), 10);
+        graph.generateConnectedGraph();
+        assertThat(graph.isConnected(), is(true));
+        assertNodes(100);
+    }
+
+    @Test
+    public void testEquals() {
+        Edge edge1 = new Edge(1, 2);
+        Edge edge2 = new Edge(1, 2);
+        Edge edge3 = new Edge(1, 3);
+        assertThat(edge1.equals(edge2), is(true));
+        assertThat(edge1.equals(edge3), is(false));
+        assertThat(edge2.equals(edge3), is(false));
     }
 
     @Test
