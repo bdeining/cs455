@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Before;
@@ -85,8 +86,33 @@ public class GraphTest {
     public void testRandomEdgeWeight() {
         graph = new Graph(generateNodes(10), 4);
         graph.generateConnectedGraph();
-//        graph.randomlyAssignEdgeWeights();
         assertThat(graph.isConnected(), is(true));
+    }
+
+    @Test
+    public void testMessageNodeListWeightListCtor() {
+        graph = new Graph(generateNodes(10), 4);
+        graph.generateConnectedGraph();
+
+        String body = graph.generateLinkWeightBody();
+        List<String> stringList = Arrays.asList(body.split("\n"));
+        Graph graph2 = new Graph(stringList);
+        assertThat(graph.isGraphEqual(graph2), is(true));
+        assertThat(graph2.isConnected(), is(true));
+    }
+
+    @Test
+    public void testFullMessageNodeList() {
+        graph = new Graph(generateNodes(10), 4);
+        graph.generateConnectedGraph();
+        graph.generateMessageNodeFullList();
+
+        String string = graph.generateMessageNodeList("127.0.0.8");
+        System.out.println(string);
+
+
+
+
     }
 
     private List<String> generateNodes(int nodes) {

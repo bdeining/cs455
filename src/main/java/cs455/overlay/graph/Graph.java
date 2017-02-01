@@ -36,6 +36,60 @@ public class Graph {
         }
     }
 
+    public Graph(List<String> messageNodeList) {
+        hostToVertexMap = new HashMap<>();
+        vertexToHostMap = new HashMap<>();
+        adjacencyList = new ArrayList<>();
+        int counter = 0;
+        for (String string : messageNodeList) {
+            String[] strings = string.split(" ");
+            String source = strings[0];
+            if (!hostToVertexMap.containsKey(source)) {
+                hostToVertexMap.put(source, counter);
+                vertexToHostMap.put(counter, source);
+                adjacencyList.add(new LinkedList<>());
+                counter++;
+            }
+        }
+
+        for (String string : messageNodeList) {
+            String[] strings = string.split(" ");
+            if (strings.length == 3) {
+                int edgeWeight = Integer.parseInt(strings[2]);
+                addVertex(getMappedVertex(strings[0]), getMappedVertex(strings[1]), edgeWeight);
+            }
+        }
+    }
+
+    public void addVertex(int source, int destination, int edgeWeight) {
+        adjacencyList.get(source)
+                .add(new Edge(edgeWeight, destination));
+/*        adjacencyList.get(destination)
+                .add(new Edge(edgeWeight, source));*/
+    }
+
+    public boolean isGraphEqual(Graph graph) {
+        if (graph.adjacencyList.size() != adjacencyList.size()) {
+            return false;
+        }
+
+        for (int i = 0; i < adjacencyList.size(); i++) {
+            List<Edge> edges1 = adjacencyList.get(i);
+            List<Edge> edges2 = graph.adjacencyList.get(i);
+            if (edges1.size() != edges2.size()) {
+                return false;
+            }
+
+            for (Edge edge : edges1) {
+                if (!edges2.contains(edge)) {
+                    return false;
+                }
+            }
+
+        }
+        return true;
+    }
+
     public Integer getMappedVertex(String x) {
         return hostToVertexMap.get(x);
     }
@@ -145,6 +199,37 @@ public class Graph {
             }
         }
         return true;
+    }
+
+    public String generateMessageNodeList(String source) {
+        StringBuilder stringBuilder = new StringBuilder("");
+        List<String> stringList = generateMessageNodeFullList();
+        for (String string : stringList) {
+            if (string.startsWith(source)) {
+                stringBuilder.append(string + "\n");
+            }
+        }
+        return stringBuilder.toString();
+    }
+
+    public List<String> generateMessageNodeFullList() {
+        List<String> stringList = new ArrayList<>();
+        for (int i = 0; i < adjacencyList.size(); i++) {
+            List<Edge> edges = adjacencyList.get(i);
+            for (int c = 0; c < edges.size(); c++) {
+                Edge edge2 = edges.get(c);
+                String edgeA = getMappedVertex(i) + " " + getMappedVertex(edge2.getVertex()) + " "
+                        + edge2.getWeight();
+                String edgeB = getMappedVertex(edge2.getVertex()) + " " + getMappedVertex(i) + " "
+                        + edge2.getWeight();
+                if (!stringList.contains(edgeA) && !stringList.contains(edgeB)) {
+                    stringList.add(edgeA);
+                    System.out.println(edgeA);
+                }
+            }
+        }
+
+        return stringList;
     }
 
     public String generateLinkWeightBody() {
