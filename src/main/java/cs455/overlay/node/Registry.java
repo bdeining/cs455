@@ -214,7 +214,7 @@ public class Registry implements Node {
         List<String> registeredHosts = Collections.list(registeredNodes.keys());
         Graph graph = new Graph(registeredHosts, numberOfConnections);
         graph.generateConnectedGraph();
-        graph.randomlyAssignEdgeWeights();
+//       graph.randomlyAssignEdgeWeights();
 
 //        System.out.println(graph.generateLinkWeightBody());
     }

@@ -31,7 +31,7 @@ public class GraphTest {
     @Test
     public void testLinkWeightBody() {
         graph.generateConnectedGraph();
-        graph.randomlyAssignEdgeWeights();
+        //graph.randomlyAssignEdgeWeights();
         graph.generateLinkWeightBody();
         System.out.println(graph.generateLinkWeightBody());
     }
@@ -85,7 +85,7 @@ public class GraphTest {
     public void testRandomEdgeWeight() {
         graph = new Graph(generateNodes(10), 4);
         graph.generateConnectedGraph();
-        graph.randomlyAssignEdgeWeights();
+//        graph.randomlyAssignEdgeWeights();
         assertThat(graph.isConnected(), is(true));
     }
 

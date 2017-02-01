@@ -53,15 +53,17 @@ public class Graph {
      * Generate a linear ring in the graph to ensure connectivity
      */
     private void generateLinearRing() {
+        int randomWeight = getRandomEdgeWeight();
         adjacencyList.get(0)
-                .add(new Edge(0, adjacencyList.size() - 1));
+                .add(new Edge(randomWeight, adjacencyList.size() - 1));
         adjacencyList.get(adjacencyList.size() - 1)
-                .add(new Edge(0, 0));
+                .add(new Edge(randomWeight, 0));
         for (int i = 0; i < adjacencyList.size() - 1; i++) {
+            randomWeight = getRandomEdgeWeight();
             adjacencyList.get(i)
-                    .add(new Edge(0, i + 1));
+                    .add(new Edge(randomWeight, i + 1));
             adjacencyList.get(i + 1)
-                    .add(new Edge(0, i));
+                    .add(new Edge(randomWeight, i));
         }
     }
 
@@ -72,10 +74,18 @@ public class Graph {
         for (int i = 0; i < adjacencyList.size(); i++) {
             while (!isConnectionLimitReached(i)) {
                 Edge vertex = getRandomVertex(i);
+                Edge backVertex = new Edge(vertex.getWeight(), i);
                 if (!adjacencyList.get(i)
                         .contains(vertex)) {
-                    adjacencyList.get(i)
-                            .add(vertex);
+                    if (!adjacencyList.get(vertex.getVertex())
+                            .contains(backVertex)) {
+                        adjacencyList.get(i)
+                                .add(vertex);
+                        adjacencyList.get(vertex.getVertex())
+                                .add(backVertex);
+
+                    }
+
                 }
             }
         }
@@ -83,7 +93,7 @@ public class Graph {
 
     private boolean isConnectionLimitReached(int vertex) {
         if (adjacencyList.get(vertex)
-                .size() != numberOfConnections) {
+                .size() < numberOfConnections) {
             return false;
         }
         return true;
@@ -97,21 +107,11 @@ public class Graph {
         while (vertex == result) {
             result = random.nextInt((max - min) + 1) + min;
         }
-        return new Edge(0, result);
+        return new Edge(getRandomEdgeWeight(), result);
     }
 
     private int getRandomEdgeWeight() {
-        return random.nextInt(11);
-    }
-
-    public void randomlyAssignEdgeWeights() {
-        for (int i = 0; i < adjacencyList.size(); i++) {
-            List<Edge> edges = adjacencyList.get(i);
-            for (int c = 0; c < edges.size(); c++) {
-                Edge edge = edges.get(c);
-                edge.setWeight(getRandomEdgeWeight());
-            }
-        }
+        return random.nextInt(10) + 1;
     }
 
     /**
@@ -149,10 +149,10 @@ public class Graph {
 
     public String generateLinkWeightBody() {
         StringBuilder stringBuilder = new StringBuilder();
-        for(int i=0; i<adjacencyList.size(); i++) {
+        for (int i = 0; i < adjacencyList.size(); i++) {
             String source = getMappedVertex(i);
             List<Edge> edges = adjacencyList.get(i);
-            for(int c=0; c< edges.size(); c++) {
+            for (int c = 0; c < edges.size(); c++) {
                 Edge edge = edges.get(c);
                 String destination = getMappedVertex(edge.getVertex());
                 stringBuilder.append(source);
