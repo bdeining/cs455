@@ -64,8 +64,6 @@ public class Graph {
     public void addVertex(int source, int destination, int edgeWeight) {
         adjacencyList.get(source)
                 .add(new Edge(edgeWeight, destination));
-/*        adjacencyList.get(destination)
-                .add(new Edge(edgeWeight, source));*/
     }
 
     public boolean isGraphEqual(Graph graph) {
@@ -137,9 +135,7 @@ public class Graph {
                                 .add(vertex);
                         adjacencyList.get(vertex.getVertex())
                                 .add(backVertex);
-
                     }
-
                 }
             }
         }
@@ -218,13 +214,10 @@ public class Graph {
             List<Edge> edges = adjacencyList.get(i);
             for (int c = 0; c < edges.size(); c++) {
                 Edge edge2 = edges.get(c);
-                String edgeA = getMappedVertex(i) + " " + getMappedVertex(edge2.getVertex()) + " "
-                        + edge2.getWeight();
-                String edgeB = getMappedVertex(edge2.getVertex()) + " " + getMappedVertex(i) + " "
-                        + edge2.getWeight();
+                String edgeA = getMappedVertex(i) + " " + getMappedVertex(edge2.getVertex());
+                String edgeB = getMappedVertex(edge2.getVertex()) + " " + getMappedVertex(i);
                 if (!stringList.contains(edgeA) && !stringList.contains(edgeB)) {
                     stringList.add(edgeA);
-                    System.out.println(edgeA);
                 }
             }
         }

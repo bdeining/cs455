@@ -26,13 +26,9 @@ public class GraphTest {
         assertNodes(5);
     }
 
-    //TODO Mirror Link Weights
-
-
     @Test
     public void testLinkWeightBody() {
         graph.generateConnectedGraph();
-        //graph.randomlyAssignEdgeWeights();
         graph.generateLinkWeightBody();
         System.out.println(graph.generateLinkWeightBody());
     }
@@ -107,12 +103,8 @@ public class GraphTest {
         graph.generateConnectedGraph();
         graph.generateMessageNodeFullList();
 
-        String string = graph.generateMessageNodeList("127.0.0.8");
+        String string = graph.generateMessageNodeList("127.0.0.0");
         System.out.println(string);
-
-
-
-
     }
 
     private List<String> generateNodes(int nodes) {
