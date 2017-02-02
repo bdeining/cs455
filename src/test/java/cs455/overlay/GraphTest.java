@@ -12,6 +12,8 @@ import org.junit.Test;
 
 import cs455.overlay.graph.Edge;
 import cs455.overlay.graph.Graph;
+import cs455.overlay.graph.ShortestPath;
+import cs455.overlay.graph.ShortestPathElement;
 
 public class GraphTest {
     private Graph graph;
@@ -95,6 +97,29 @@ public class GraphTest {
         Graph graph2 = new Graph(stringList);
         assertThat(graph.isGraphEqual(graph2), is(true));
         assertThat(graph2.isConnected(), is(true));
+    }
+
+    @Test
+    public void testShortestPath() {
+
+        graph.generateConnectedGraph();
+        String stringList = graph.generateLinkWeightBody();
+        System.out.println(stringList);
+        ShortestPathElement shortestPathElement = ShortestPath.dijkstra(graph, 0);
+        int[] dist = shortestPathElement.getDist();
+        int[] pred = shortestPathElement.getPred();
+
+
+        for(int i=0; i<dist.length; i++) {
+            System.out.println(i + " " + dist[i]);
+        }
+
+        ShortestPath.printPath(pred, 0, 1);
+        ShortestPath.printPath(pred, 0, 2);
+        ShortestPath.printPath(pred, 0, 3);
+        ShortestPath.printPath(pred, 0, 4);
+
+
     }
 
     @Test

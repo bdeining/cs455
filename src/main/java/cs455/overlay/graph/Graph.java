@@ -11,7 +11,7 @@ import java.util.Random;
 
 public class Graph {
 
-    private final ArrayList<LinkedList<Edge>> adjacencyList;
+    private final List<LinkedList<Edge>> adjacencyList;
 
     private Map<String, Integer> hostToVertexMap;
 
@@ -34,6 +34,20 @@ public class Graph {
             adjacencyList.add(new LinkedList<>());
             counter++;
         }
+    }
+
+    public List<LinkedList<Edge>> getAdjacencyList() {
+        return adjacencyList;
+    }
+
+    public int getWeight(int next, int v) {
+        List<Edge> edges = adjacencyList.get(next);
+        for(Edge edge : edges) {
+            if(edge.getVertex() == v) {
+                return edge.getWeight();
+            }
+        }
+        return -1;
     }
 
     public Graph(List<String> messageNodeList) {
