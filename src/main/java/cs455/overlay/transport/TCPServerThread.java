@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import cs455.overlay.node.MessagingNode;
 import cs455.overlay.node.Node;
 
 public class TCPServerThread implements Runnable {
@@ -33,6 +34,10 @@ public class TCPServerThread implements Runnable {
         while (true) {
             try {
                 Socket client = serverSocket.accept();
+                if(node instanceof MessagingNode) {
+                    ((MessagingNode)node).addSocket(client.getInetAddress().getHostAddress(), client);
+                }
+
                 TCPReceiverThread tcpReceiverThread = new TCPReceiverThread(node, client);
                 new Thread(tcpReceiverThread).start();
             } catch (IOException e) {

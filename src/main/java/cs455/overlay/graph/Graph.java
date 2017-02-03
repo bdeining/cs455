@@ -211,15 +211,15 @@ public class Graph {
         return true;
     }
 
-    public String generateMessageNodeList(String source) {
-        StringBuilder stringBuilder = new StringBuilder("");
+    public List<String> generateMessageNodeList(String source) {
+        List<String> messageNodeList = new ArrayList<>();
         List<String> stringList = generateMessageNodeFullList();
         for (String string : stringList) {
             if (string.startsWith(source)) {
-                stringBuilder.append(string + "\n");
+                messageNodeList.add(string);
             }
         }
-        return stringBuilder.toString();
+        return messageNodeList;
     }
 
     public List<String> generateMessageNodeFullList() {

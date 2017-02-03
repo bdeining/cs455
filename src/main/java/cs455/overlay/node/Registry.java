@@ -214,10 +214,15 @@ public class Registry implements Node {
         List<String> registeredHosts = Collections.list(registeredNodes.keys());
         Graph graph = new Graph(registeredHosts, numberOfConnections);
         graph.generateConnectedGraph();
-//       graph.randomlyAssignEdgeWeights();
 
-//        System.out.println(graph.generateLinkWeightBody());
-    }
+        for(Map.Entry<String, Connection> entry : registeredNodes.entrySet()) {
+            List<String> messageNode = graph.generateMessageNodeList(entry.getKey());
+            Connection connection = entry.getValue();
+            Socket socket = connection.getSocket();
+            Event event = EventFactory.createMessagingNodeList(messageNode.size(), messageNode);
+            sendEventToIp(socket, event);
+        }
+}
 
     /**
      * This should result in a Link_Weights message being sent to all registered nodes in the overlay. This

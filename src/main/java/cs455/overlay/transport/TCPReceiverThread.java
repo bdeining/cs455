@@ -83,6 +83,10 @@ public class TCPReceiverThread implements Runnable {
                         ((MessagingNode) node).startRounds(taskInitiate.getNumberOfRounds());
                     }
                     break;
+                case 8:
+                    if (node instanceof MessagingNode) {
+                        // link weights processing
+                    }
                 }
 
             } catch (SocketException e) {

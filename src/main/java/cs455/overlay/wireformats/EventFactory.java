@@ -43,6 +43,10 @@ public class EventFactory {
         return new TaskInitiate(numberOfRounds);
     }
 
+    public static Event createLinkWeights(int numberOfConnections, List<String> links) {
+        return new LinkWeights(numberOfConnections, links);
+    }
+
     public static Event createEvent(int type, byte[] bytes) {
 
         Event event = null;
@@ -70,6 +74,9 @@ public class EventFactory {
                 break;
             case 7:
                 event = new TaskInitiate(bytes);
+                break;
+            case 8:
+                event = new LinkWeights(bytes);
                 break;
             default:
                 event = null;

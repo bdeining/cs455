@@ -128,8 +128,8 @@ public class GraphTest {
         graph.generateConnectedGraph();
         graph.generateMessageNodeFullList();
 
-        String string = graph.generateMessageNodeList("127.0.0.0");
-        System.out.println(string);
+        List<String> string = graph.generateMessageNodeList("127.0.0.0");
+        System.out.println(string.toString());
     }
 
     private List<String> generateNodes(int nodes) {

@@ -85,9 +85,7 @@ public class MessagingNode implements Node {
 
         TCPServerThread tcpServerThread = new TCPServerThread(this, 0);
         new Thread(tcpServerThread).start();
-        //TODO refactor port stuff
         listeningPort = tcpServerThread.getPort();
-        System.out.println(listeningPort);
 
         try {
             Socket socket = new Socket(registryHost, registryPort);
@@ -134,6 +132,10 @@ public class MessagingNode implements Node {
 
     public void exit() {
         System.exit(0);
+    }
+
+    public void addSocket(String hostName, Socket socket) {
+        connections.put(hostName, socket);
     }
 
     public void setupMessagingNodeLinks(List<String> nodes) {
