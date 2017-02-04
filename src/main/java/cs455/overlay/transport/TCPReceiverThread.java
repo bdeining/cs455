@@ -71,7 +71,9 @@ public class TCPReceiverThread implements Runnable {
                     break;
                 case 5:
                     if (node instanceof MessagingNode) {
-                        ((MessagingNode) node).setupMessagingNodeLinks(((MessagingNodesList) event).getMessagingNodes());
+                        MessagingNodesList messagingNodesList = (MessagingNodesList) event;
+                        ((MessagingNode) node).setupMessagingNodeLinks(messagingNodesList.getMessagingNodes(), messagingNodesList.getNumberOfPeers());
+
                     }
                     break;
                 case 6:

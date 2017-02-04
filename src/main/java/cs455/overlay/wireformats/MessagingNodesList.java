@@ -75,4 +75,7 @@ public class MessagingNodesList implements Event {
         return messagingNodes;
     }
 
+    public int getNumberOfPeers() {
+        return numberOfPeers;
+    }
 }

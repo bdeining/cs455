@@ -153,8 +153,8 @@ public class MessagingNode implements Node {
         connections.put(hostName, socket);
     }
 
-    public void setupMessagingNodeLinks(List<String> nodes) {
-        if(nodes.size() == 0) {
+    public void setupMessagingNodeLinks(List<String> nodes, int numberOfPeers) {
+        if(numberOfPeers == 0) {
             return;
         }
 
@@ -199,23 +199,29 @@ public class MessagingNode implements Node {
             System.out.println(entry.getKey() + " " + entry.getValue());
 
         }
-        /*
+
 
 
         String source = inetAddress + ":" + listeningPort;
 
         for(int i=0; i<numberOfRounds; i++) {
-            String destination = graph.getRandomHost(inetAddress + ":" + listeningPort);
-            List<String> paths = graph.getShortestPath(source, destination);
-            Event event = EventFactory.createMessage(2, source, destination);
-            String sendDest = paths.get(1);
-            Socket socket = connections.get(sendDest);
+            for (Map.Entry<String, Socket> entry : connections.entrySet()) {
+                //String destination = graph.getRandomHost(inetAddress + ":" + listeningPort);
 
-            System.out.println("Send message to : " + destination + " through " + sendDest + " SOCKET : " + socket);
+                String destination = entry.getKey();
+                List<String> paths = graph.getShortestPath(source, destination);
+                Event event = EventFactory.createMessage(2, source, destination);
+                String sendDest = paths.get(1);
+                Socket socket = connections.get(sendDest);
 
-*/
-//            sendEventToIp(socket, event);
-//        }
+                System.out.println("Send message to : " + destination + " through " + sendDest + " SOCKET : " + socket);
+
+
+                sendEventToIp(socket, event);
+            }
+
+
+        }
     }
 
     private static void sendEventToIp(Socket socket, Event event) {
