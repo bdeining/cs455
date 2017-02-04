@@ -29,6 +29,8 @@ public class Registry implements Node {
 
     private static TCPServerThread tcpServerThread;
 
+    private Graph graph;
+
     private static ConcurrentHashMap<String, Connection> registeredNodes;
 
     public static void main(String[] args) {
@@ -212,11 +214,12 @@ public class Registry implements Node {
     public void setupOverlay(int numberOfConnections) {
         System.out.println("setup overlay + " + numberOfConnections);
         List<String> registeredHosts = Collections.list(registeredNodes.keys());
-        Graph graph = new Graph(registeredHosts, numberOfConnections);
+        graph = new Graph(registeredHosts, numberOfConnections);
         graph.generateConnectedGraph();
 
         for(Map.Entry<String, Connection> entry : registeredNodes.entrySet()) {
             List<String> messageNode = graph.generateMessageNodeList(entry.getKey());
+            System.out.println(messageNode.toString());
             Connection connection = entry.getValue();
             Socket socket = connection.getSocket();
             Event event = EventFactory.createMessagingNodeList(messageNode.size(), messageNode);
@@ -232,6 +235,17 @@ public class Registry implements Node {
      */
     public void sendOverlayLinkWeights() {
         System.out.println("sending link weights");
+        if(graph == null) {
+            return;
+        }
+
+        List<String> linkWeights = graph.generateLinkWeightList();
+
+        Event event = EventFactory.createLinkWeights(linkWeights.size(), linkWeights);
+        for(Map.Entry<String, Connection> entry : registeredNodes.entrySet()) {
+            Socket socket = entry.getValue().getSocket();
+            sendEventToIp(socket, event);
+        }
 
     }
 
@@ -245,6 +259,13 @@ public class Registry implements Node {
      */
     public void start(int numberOfRounds) {
         System.out.println("starting : number of rounds " + numberOfRounds);
+        Event event = EventFactory.createTaskInitiate(numberOfRounds);
+
+        for(Map.Entry<String, Connection> stringConnectionEntry : registeredNodes.entrySet()) {
+            Socket socket = stringConnectionEntry.getValue().getSocket();
+            sendEventToIp(socket, event);
+        }
+
     }
 
     @Override

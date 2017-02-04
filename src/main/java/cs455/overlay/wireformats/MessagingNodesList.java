@@ -37,11 +37,8 @@ public class MessagingNodesList implements Event {
         String[] messagingList = messagingNodeString.split("\n");
         messagingNodes = new ArrayList<>(Arrays.asList(messagingList));
 
-        printDetails();
         dataInputStream.close();
         byteArrayInputStream.close();
-
-
     }
 
     @Override

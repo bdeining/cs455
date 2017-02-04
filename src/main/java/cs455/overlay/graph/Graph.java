@@ -163,6 +163,11 @@ public class Graph {
         return true;
     }
 
+    public String getRandomHost(String source) {
+        int sourceInt = getMappedVertex(source);
+        return getMappedVertex(getRandomVertex(sourceInt).getVertex());
+    }
+
     private Edge getRandomVertex(int vertex) {
         int min = 0;
         int max = adjacencyList.size() - 1;
@@ -222,6 +227,20 @@ public class Graph {
         return messageNodeList;
     }
 
+    public List<String> getShortestPath(String source, String destination) {
+        int destinationInt = getMappedVertex(destination);
+        int sourceInt = getMappedVertex(source);
+        ShortestPathElement shortestPathElement = ShortestPath.dijkstra(this, sourceInt);
+        List<Integer> dest = ShortestPath.printPath(shortestPathElement.getPred(),
+                sourceInt,
+                destinationInt);
+        List<String> paths = new ArrayList<>();
+        for(Integer integer : dest) {
+            paths.add(getMappedVertex(integer));
+        }
+        return paths;
+    }
+
     public List<String> generateMessageNodeFullList() {
         List<String> stringList = new ArrayList<>();
         for (int i = 0; i < adjacencyList.size(); i++) {
@@ -237,6 +256,22 @@ public class Graph {
         }
 
         return stringList;
+    }
+
+    public List<String> generateLinkWeightList() {
+        List<String> linkWeights = new ArrayList<>();
+        for (int i = 0; i < adjacencyList.size(); i++) {
+            String source = getMappedVertex(i);
+            List<Edge> edges = adjacencyList.get(i);
+            for (int c = 0; c < edges.size(); c++) {
+                Edge edge = edges.get(c);
+                String destination = getMappedVertex(edge.getVertex());
+                int weight = edge.getWeight();
+                String link = source + " " + destination + " " + weight;
+                linkWeights.add(link);
+            }
+        }
+        return linkWeights;
     }
 
     public String generateLinkWeightBody() {

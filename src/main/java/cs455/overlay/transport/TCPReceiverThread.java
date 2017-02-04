@@ -11,6 +11,8 @@ import cs455.overlay.node.Registry;
 import cs455.overlay.wireformats.DeregisterRequest;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.EventFactory;
+import cs455.overlay.wireformats.Identity;
+import cs455.overlay.wireformats.LinkWeights;
 import cs455.overlay.wireformats.MessagingNodesList;
 import cs455.overlay.wireformats.RegisterRequest;
 import cs455.overlay.wireformats.TaskInitiate;
@@ -86,6 +88,13 @@ public class TCPReceiverThread implements Runnable {
                 case 8:
                     if (node instanceof MessagingNode) {
                         // link weights processing
+                        ((MessagingNode)node).generateMapFromLinkWeights((LinkWeights)event);
+                    }
+                    break;
+                case 9:
+                    if (node instanceof MessagingNode) {
+                        Identity identity = (Identity)event;
+                        ((MessagingNode) node).addSocket(identity.getIdentification(), socket);
                     }
                 }
 

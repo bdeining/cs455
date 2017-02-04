@@ -1,17 +1,17 @@
 package cs455.overlay.graph;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ShortestPath {
 
-    // Dijkstra's algorithm to find shortest path from s to all other nodes
     public static ShortestPathElement dijkstra(Graph G, int s) {
         int size = G.getAdjacencyList()
                 .size();
 
-        final int[] dist = new int[size];  // shortest known distance from "s"
-        final int[] pred = new int[size];  // preceeding node in path
-        final boolean[] visited = new boolean[size]; // all false initially
+        final int[] dist = new int[size];
+        final int[] pred = new int[size];
+        final boolean[] visited = new boolean[size];
 
         for (int i = 0; i < dist.length; i++) {
             dist[i] = Integer.MAX_VALUE;
@@ -21,8 +21,6 @@ public class ShortestPath {
         for (int i = 0; i < dist.length; i++) {
             final int next = minVertex(dist, visited);
             visited[next] = true;
-
-            // The shortest path to next is dist[next] and via pred[next].
 
             final List<Edge> n = G.getAdjacencyList()
                     .get(next);
@@ -41,7 +39,7 @@ public class ShortestPath {
 
     private static int minVertex(int[] dist, boolean[] v) {
         int x = Integer.MAX_VALUE;
-        int y = -1;   // graph not connected, or no unvisited vertices
+        int y = -1;
         for (int i = 0; i < dist.length; i++) {
             if (!v[i] && dist[i] < x) {
                 y = i;
@@ -51,15 +49,15 @@ public class ShortestPath {
         return y;
     }
 
-    public static void printPath(int[] pred, int s, int e) {
-        final java.util.ArrayList path = new java.util.ArrayList();
+    public static List<Integer> printPath(int[] pred, int s, int e) {
+        final List<Integer> path = new ArrayList<>();
         int x = e;
         while (x != s) {
             path.add(0, x);
             x = pred[x];
         }
         path.add(0, s);
-        System.out.println(path);
+        return path;
     }
 
 }

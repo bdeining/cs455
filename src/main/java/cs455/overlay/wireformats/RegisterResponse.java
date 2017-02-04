@@ -33,7 +33,6 @@ public class RegisterResponse implements Event {
         dataInputStream.read(additionalInformationBytes, 0, elementLength);
         additionalInfo = new String(additionalInformationBytes);
 
-        printDetails();
         dataInputStream.close();
         byteArrayInputStream.close();
     }

@@ -47,6 +47,10 @@ public class EventFactory {
         return new LinkWeights(numberOfConnections, links);
     }
 
+    public static Event createIdentification(String identity) {
+        return new Identity(identity);
+    }
+
     public static Event createEvent(int type, byte[] bytes) {
 
         Event event = null;
@@ -77,6 +81,9 @@ public class EventFactory {
                 break;
             case 8:
                 event = new LinkWeights(bytes);
+                break;
+            case 9:
+                event = new Identity(bytes);
                 break;
             default:
                 event = null;

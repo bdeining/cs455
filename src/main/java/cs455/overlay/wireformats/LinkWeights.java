@@ -36,7 +36,6 @@ public class LinkWeights implements Event {
         String[] messagingList = messagingNodeString.split("\n");
         links = new ArrayList<>(Arrays.asList(messagingList));
 
-        printDetails();
         dataInputStream.close();
         byteArrayInputStream.close();
     }
@@ -58,6 +57,10 @@ public class LinkWeights implements Event {
         dataOutputStream.close();
         byteArrayOutputStream.close();
         return byteArrayOutputStream.toByteArray();
+    }
+
+    public List<String> getLinks() {
+        return links;
     }
 
     @Override

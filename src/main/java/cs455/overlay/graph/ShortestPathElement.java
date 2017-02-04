@@ -2,8 +2,9 @@ package cs455.overlay.graph;
 
 public class ShortestPathElement {
 
-    int[] dist;
-    int[] pred;
+    private int[] dist;
+
+    private int[] pred;
 
     public ShortestPathElement(int[] dist, int[] pred) {
         this.dist = dist;

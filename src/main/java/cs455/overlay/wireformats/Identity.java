@@ -6,31 +6,28 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public class DeregisterResponse implements Event {
-    private static final int type = 4;
+public class Identity implements Event {
 
-    private String additionalInfo;
+    private static final int type = 9;
 
-    private byte statusCode;
+    private String identification;
 
-    public DeregisterResponse(byte statusCode, String additionalInfo) {
-        this.statusCode = statusCode;
-        this.additionalInfo = additionalInfo;
+    public Identity(String identification) {
+        this.identification = identification;
     }
 
-    public DeregisterResponse(byte[] bytes) throws IOException {
+    public Identity(byte[] bytes) throws IOException {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
         DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
 
         // ignore type
         int type = dataInputStream.readInt();
 
-        statusCode = dataInputStream.readByte();
-
         int elementLength = dataInputStream.readInt();
-        byte[] additionalInformationBytes = new byte[elementLength];
-        dataInputStream.read(additionalInformationBytes, 0, elementLength);
-        additionalInfo = new String(additionalInformationBytes);
+        byte[] ipAddressBytes = new byte[elementLength];
+        dataInputStream.read(ipAddressBytes, 0, elementLength);
+        identification = new String(ipAddressBytes);
+
         dataInputStream.close();
         byteArrayInputStream.close();
     }
@@ -40,9 +37,8 @@ public class DeregisterResponse implements Event {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
         dataOutputStream.writeInt(type);
-        dataOutputStream.writeByte(statusCode);
 
-        byte[] element = additionalInfo.getBytes();
+        byte[] element = identification.getBytes();
         dataOutputStream.writeInt(element.length);
         dataOutputStream.write(element);
 
@@ -57,8 +53,7 @@ public class DeregisterResponse implements Event {
         return type;
     }
 
-    private void printDetails() {
-        System.out.println(statusCode);
-        System.out.println(additionalInfo);
+    public String getIdentification() {
+        return identification;
     }
 }

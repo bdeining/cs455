@@ -24,7 +24,6 @@ public class TaskInitiate implements Event {
 
         numberOfRounds = dataInputStream.readInt();
 
-        printDetails();
         dataInputStream.close();
         byteArrayInputStream.close();
     }

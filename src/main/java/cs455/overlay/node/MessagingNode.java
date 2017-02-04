@@ -5,16 +5,20 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import cs455.overlay.graph.Graph;
 import cs455.overlay.transport.TCPReceiverThread;
 import cs455.overlay.transport.TCPSender;
 import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.EventFactory;
+import cs455.overlay.wireformats.LinkWeights;
+import cs455.overlay.wireformats.Message;
 
 public class MessagingNode implements Node {
     private static final String PRINT_SHORTEST_PATH_COMMAND = "print-shortest-path";
@@ -32,6 +36,8 @@ public class MessagingNode implements Node {
     private static final AtomicLong SEND_SUMMATION = new AtomicLong(0);
 
     private static final AtomicLong RECIEVE_SUMMATION = new AtomicLong(0);
+
+    private Graph graph;
 
     private static int port;
 
@@ -83,9 +89,13 @@ public class MessagingNode implements Node {
             e.printStackTrace();
         }
 
+
+
         TCPServerThread tcpServerThread = new TCPServerThread(this, 0);
         new Thread(tcpServerThread).start();
         listeningPort = tcpServerThread.getPort();
+
+        System.out.println(inetAddress + ":" + listeningPort);
 
         try {
             Socket socket = new Socket(registryHost, registryPort);
@@ -105,6 +115,10 @@ public class MessagingNode implements Node {
 
         }
 
+    }
+
+    public void generateMapFromLinkWeights(LinkWeights event) {
+        graph = new Graph(event.getLinks());
     }
 
     /**
@@ -135,14 +149,19 @@ public class MessagingNode implements Node {
     }
 
     public void addSocket(String hostName, Socket socket) {
+        System.out.println("Adding socket : " + hostName);
         connections.put(hostName, socket);
     }
 
     public void setupMessagingNodeLinks(List<String> nodes) {
-        for (String node : nodes) {
-            System.out.println("set up " + node);
+        if(nodes.size() == 0) {
+            return;
+        }
 
-            String[] strings = node.split(":");
+        for (String node : nodes) {
+            System.out.println(node);
+            String[] split = node.split(" ");
+            String[] strings = split[1].split(":");
             if (strings.length != 2) {
                 continue;
             }
@@ -157,13 +176,12 @@ public class MessagingNode implements Node {
             try {
                 Socket socket = new Socket(strings[0], port);
                 connections.put(socket.getInetAddress()
-                        .getHostAddress(), socket);
+                        .getHostAddress() + ":" + port, socket);
                 TCPReceiverThread tcpReceiverThread = new TCPReceiverThread(this, socket);
                 new Thread(tcpReceiverThread).start();
 
-                TCPSender tcpSender = new TCPSender(socket);
-                tcpSender.sendData(EventFactory.createMessage(12, "source", "destination")
-                        .getBytes());
+                Event event = EventFactory.createIdentification(inetAddress + ":" + listeningPort);
+                sendEventToIp(socket, event);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -171,11 +189,42 @@ public class MessagingNode implements Node {
     }
 
     public void processMessage(Event event) {
-        System.out.println("Process message" + event);
+        Message message = (Message)event;
+        System.out.println("Received : " + message.getPayload() + " from " + message.getSource());
     }
 
     public void startRounds(int numberOfRounds) {
-        System.out.println("Start + " + numberOfRounds);
+
+        for(Map.Entry<String, Socket> entry : connections.entrySet()) {
+            System.out.println(entry.getKey() + " " + entry.getValue());
+
+        }
+        /*
+
+
+        String source = inetAddress + ":" + listeningPort;
+
+        for(int i=0; i<numberOfRounds; i++) {
+            String destination = graph.getRandomHost(inetAddress + ":" + listeningPort);
+            List<String> paths = graph.getShortestPath(source, destination);
+            Event event = EventFactory.createMessage(2, source, destination);
+            String sendDest = paths.get(1);
+            Socket socket = connections.get(sendDest);
+
+            System.out.println("Send message to : " + destination + " through " + sendDest + " SOCKET : " + socket);
+
+*/
+//            sendEventToIp(socket, event);
+//        }
+    }
+
+    private static void sendEventToIp(Socket socket, Event event) {
+        try {
+            TCPSender tcpSender = new TCPSender(socket);
+            tcpSender.sendData(event.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

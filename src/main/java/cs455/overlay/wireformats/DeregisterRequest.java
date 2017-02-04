@@ -28,7 +28,6 @@ public class DeregisterRequest implements Event {
         dataInputStream.read(ipAddressBytes, 0, elementLength);
         ipAddress = new String(ipAddressBytes);
         port = dataInputStream.readInt();
-        printDetails();
         dataInputStream.close();
         byteArrayInputStream.close();
 

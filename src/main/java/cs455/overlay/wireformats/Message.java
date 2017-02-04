@@ -39,7 +39,6 @@ public class Message implements Event {
         dataInputStream.read(element, 0, elementLength);
         destination = new String(element);
 
-        printDetails();
         dataInputStream.close();
         byteArrayInputStream.close();
     }
@@ -74,5 +73,13 @@ public class Message implements Event {
         System.out.println(payload);
         System.out.println(source);
         System.out.println(destination);
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public int getPayload() {
+        return payload;
     }
 }
