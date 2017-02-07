@@ -64,10 +64,4 @@ public class RegisterRequest implements Event {
     public String getIpAddress() {
         return ipAddress;
     }
-
-    private void printDetails() {
-        System.out.println(type);
-        System.out.println(ipAddress);
-        System.out.println(port);
-    }
 }

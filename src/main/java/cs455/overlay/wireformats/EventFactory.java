@@ -51,6 +51,22 @@ public class EventFactory {
         return new Identity(identity);
     }
 
+    public static Event createTaskComplete(String ip, int port) {
+        return new TaskComplete(ip, port);
+    }
+
+    public static Event createTrafficSummary(String ip, int port, int messagesSent,
+            int messagesReceive, int messagesRelayed, long messagesSentSummation,
+            long messagesReceivedSummation) {
+        return new TrafficSummary(ip,
+                port,
+                messagesSent,
+                messagesReceive,
+                messagesRelayed,
+                messagesSentSummation,
+                messagesReceivedSummation);
+    }
+
     public static Event createEvent(int type, byte[] bytes) {
 
         Event event = null;
@@ -84,6 +100,15 @@ public class EventFactory {
                 break;
             case 9:
                 event = new Identity(bytes);
+                break;
+            case 10:
+                event = new TaskComplete(bytes);
+                break;
+            case 11:
+                event = new PullTrafficSummary(bytes);
+                break;
+            case 12:
+                event = new TrafficSummary(bytes);
                 break;
             default:
                 event = null;

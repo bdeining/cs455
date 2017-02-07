@@ -65,12 +65,6 @@ public class MessagingNodesList implements Event {
         return type;
     }
 
-    private void printDetails() {
-        System.out.println(type);
-        System.out.println(numberOfPeers);
-        System.out.println(messagingNodes);
-    }
-
     public List<String> getMessagingNodes() {
         return messagingNodes;
     }

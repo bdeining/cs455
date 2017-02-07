@@ -56,9 +56,4 @@ public class DeregisterResponse implements Event {
     public int getType() {
         return type;
     }
-
-    private void printDetails() {
-        System.out.println(statusCode);
-        System.out.println(additionalInfo);
-    }
 }

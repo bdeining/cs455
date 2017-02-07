@@ -82,4 +82,8 @@ public class Message implements Event {
     public int getPayload() {
         return payload;
     }
+
+    public String getDestination() {
+        return destination;
+    }
 }

@@ -67,9 +67,4 @@ public class LinkWeights implements Event {
     public int getType() {
         return type;
     }
-
-    public void printDetails() {
-        System.out.println(numberOfLinks);
-        System.out.println(links.toString());
-    }
 }

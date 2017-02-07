@@ -15,7 +15,9 @@ import cs455.overlay.wireformats.Identity;
 import cs455.overlay.wireformats.LinkWeights;
 import cs455.overlay.wireformats.MessagingNodesList;
 import cs455.overlay.wireformats.RegisterRequest;
+import cs455.overlay.wireformats.TaskComplete;
 import cs455.overlay.wireformats.TaskInitiate;
+import cs455.overlay.wireformats.TrafficSummary;
 
 public class TCPReceiverThread implements Runnable {
 
@@ -72,7 +74,8 @@ public class TCPReceiverThread implements Runnable {
                 case 5:
                     if (node instanceof MessagingNode) {
                         MessagingNodesList messagingNodesList = (MessagingNodesList) event;
-                        ((MessagingNode) node).setupMessagingNodeLinks(messagingNodesList.getMessagingNodes(), messagingNodesList.getNumberOfPeers());
+                        ((MessagingNode) node).setupMessagingNodeLinks(messagingNodesList.getMessagingNodes(),
+                                messagingNodesList.getNumberOfPeers());
 
                     }
                     break;
@@ -90,16 +93,35 @@ public class TCPReceiverThread implements Runnable {
                 case 8:
                     if (node instanceof MessagingNode) {
                         // link weights processing
-                        ((MessagingNode)node).generateMapFromLinkWeights((LinkWeights)event);
+                        ((MessagingNode) node).generateMapFromLinkWeights((LinkWeights) event);
                     }
                     break;
                 case 9:
                     if (node instanceof MessagingNode) {
-                        Identity identity = (Identity)event;
+                        Identity identity = (Identity) event;
                         ((MessagingNode) node).addSocket(identity.getIdentification(), socket);
                     }
-                }
+                    break;
 
+                case 10:
+                    if (node instanceof Registry) {
+                        TaskComplete taskComplete = (TaskComplete) event;
+                        ((Registry) node).taskComplete(taskComplete);
+                    }
+                    break;
+
+                case 11:
+                    if (node instanceof MessagingNode) {
+                        ((MessagingNode)node).pullTrafficSummary();
+                    }
+                    break;
+
+                case 12:
+                    if (node instanceof Registry) {
+                        TrafficSummary trafficSummary = (TrafficSummary)event;
+                        ((Registry) node).trafficSummary(trafficSummary);
+                    }
+                }
             } catch (SocketException e) {
                 e.printStackTrace();
                 break;

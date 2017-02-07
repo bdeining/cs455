@@ -6,26 +6,32 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public class TaskInitiate implements Event {
-    private static final int type = 7;
+public class TaskComplete implements Event {
 
-    private int numberOfRounds;
+    private static final int type = 10;
 
-    public TaskInitiate(int numberOfRounds) {
-        this.numberOfRounds = numberOfRounds;
+    private int port;
+
+    private String ip;
+
+    public TaskComplete(String ip, int port) {
+        this.ip = ip;
+        this.port = port;
     }
 
-    public TaskInitiate(byte[] bytes) throws IOException {
+    public TaskComplete(byte[] bytes) throws IOException {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
         DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
-
         // ignore type
         int type = dataInputStream.readInt();
-
-        numberOfRounds = dataInputStream.readInt();
-
+        int elementLength = dataInputStream.readInt();
+        byte[] ipAddressBytes = new byte[elementLength];
+        dataInputStream.read(ipAddressBytes, 0, elementLength);
+        ip = new String(ipAddressBytes);
+        port = dataInputStream.readInt();
         dataInputStream.close();
         byteArrayInputStream.close();
+
     }
 
     @Override
@@ -33,7 +39,12 @@ public class TaskInitiate implements Event {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
         dataOutputStream.writeInt(type);
-        dataOutputStream.writeInt(numberOfRounds);
+
+        byte[] element = ip.getBytes();
+
+        dataOutputStream.writeInt(element.length);
+        dataOutputStream.write(element);
+        dataOutputStream.writeInt(port);
 
         dataOutputStream.flush();
         dataOutputStream.close();
@@ -43,10 +54,14 @@ public class TaskInitiate implements Event {
 
     @Override
     public int getType() {
-        return 7;
+        return 10;
     }
 
-    public int getNumberOfRounds() {
-        return numberOfRounds;
+    public String getIp() {
+        return ip;
+    }
+
+    public int getPort() {
+        return port;
     }
 }

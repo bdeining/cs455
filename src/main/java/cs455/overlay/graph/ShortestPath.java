@@ -57,6 +57,7 @@ public class ShortestPath {
             x = pred[x];
         }
         path.add(0, s);
+        System.out.println(path);
         return path;
     }
 

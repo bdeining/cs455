@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -37,9 +38,13 @@ public class MessagingNode implements Node {
 
     private static final AtomicLong RECIEVE_SUMMATION = new AtomicLong(0);
 
+    private Socket registrySocket;
+
+    private static String registryHost;
+
     private Graph graph;
 
-    private static int port;
+    private static int registryPort;
 
     private int listeningPort;
 
@@ -55,9 +60,9 @@ public class MessagingNode implements Node {
         MessagingNode messagingNode = null;
 
         try {
-            String registryHost = args[0];
-            port = Integer.parseInt(args[1]);
-            messagingNode = new MessagingNode(registryHost, port);
+            registryHost = args[0];
+            registryPort = Integer.parseInt(args[1]);
+            messagingNode = new MessagingNode();
         } catch (NumberFormatException e) {
             e.printStackTrace();
         }
@@ -79,7 +84,7 @@ public class MessagingNode implements Node {
         }
     }
 
-    public MessagingNode(String registryHost, int registryPort) {
+    public MessagingNode() {
         connections = new ConcurrentHashMap<>();
 
         try {
@@ -89,19 +94,15 @@ public class MessagingNode implements Node {
             e.printStackTrace();
         }
 
-
-
         TCPServerThread tcpServerThread = new TCPServerThread(this, 0);
         new Thread(tcpServerThread).start();
         listeningPort = tcpServerThread.getPort();
 
-        System.out.println(inetAddress + ":" + listeningPort);
-
         try {
-            Socket socket = new Socket(registryHost, registryPort);
-            TCPReceiverThread tcpReceiverThread = new TCPReceiverThread(this, socket);
+            registrySocket = new Socket(registryHost, registryPort);
+            TCPReceiverThread tcpReceiverThread = new TCPReceiverThread(this, registrySocket);
             new Thread(tcpReceiverThread).start();
-            tcpSender = new TCPSender(socket);
+            tcpSender = new TCPSender(registrySocket);
 
             byte[] wrappedData = EventFactory.createRegisterRequest(inetAddress, listeningPort)
                     .getBytes();
@@ -127,7 +128,13 @@ public class MessagingNode implements Node {
      * e.g. carrot–-8––broccoli––4––-zucchini––-2––brussels––1––onion
      */
     public void printShortestPath() {
-
+        StringBuilder stringBuilder = new StringBuilder("");
+        for (Map.Entry<String, Socket> entry : connections.entrySet()) {
+            List<String> shortestPaths = graph.getShortestPath(inetAddress + ":" + listeningPort,
+                    entry.getKey());
+            //            stringBuilder.append(shortestPaths.)
+            System.out.println(shortestPaths.toString());
+        }
     }
 
     /**
@@ -154,7 +161,7 @@ public class MessagingNode implements Node {
     }
 
     public void setupMessagingNodeLinks(List<String> nodes, int numberOfPeers) {
-        if(numberOfPeers == 0) {
+        if (numberOfPeers == 0) {
             return;
         }
 
@@ -189,39 +196,65 @@ public class MessagingNode implements Node {
     }
 
     public void processMessage(Event event) {
-        Message message = (Message)event;
-        System.out.println("Received : " + message.getPayload() + " from " + message.getSource());
+        Message message = (Message) event;
+
+        /* Recieve message */
+        if (message.getDestination()
+                .equals(inetAddress + ":" + listeningPort)) {
+            System.out.println(
+                    "Message received from " + message.getSource() + " : " + message.getPayload());
+            RECIEVE_TRACKER.incrementAndGet();
+            RECIEVE_SUMMATION.addAndGet(message.getPayload());
+            return;
+        }
+
+        /* Otherwise Relay Message*/
+        RELAY_TRACKER.incrementAndGet();
+        sendTo(event);
+    }
+
+    private void sendTo(Event event) {
+        Message message = (Message) event;
+        String destination = message.getDestination();
+        List<String> paths = graph.getShortestPath(inetAddress + ":" + listeningPort, destination);
+        String sendDest = paths.get(1);
+        Socket socket = connections.get(sendDest);
+        sendEventToIp(socket, event);
     }
 
     public void startRounds(int numberOfRounds) {
-
-        for(Map.Entry<String, Socket> entry : connections.entrySet()) {
-            System.out.println(entry.getKey() + " " + entry.getValue());
-
-        }
-
-
-
         String source = inetAddress + ":" + listeningPort;
 
-        for(int i=0; i<numberOfRounds; i++) {
+        for (int i = 0; i < numberOfRounds; i++) {
             for (Map.Entry<String, Socket> entry : connections.entrySet()) {
-                //String destination = graph.getRandomHost(inetAddress + ":" + listeningPort);
-
-                String destination = entry.getKey();
-                List<String> paths = graph.getShortestPath(source, destination);
-                Event event = EventFactory.createMessage(2, source, destination);
-                String sendDest = paths.get(1);
-                Socket socket = connections.get(sendDest);
-
-                System.out.println("Send message to : " + destination + " through " + sendDest + " SOCKET : " + socket);
-
-
-                sendEventToIp(socket, event);
+                String randomDest = graph.getRandomHost(inetAddress + ":" + listeningPort);
+                int randomInt = getRandomInt();
+                Event event = EventFactory.createMessage(randomInt, source, randomDest);
+                System.out.println("Send message to : " + randomDest + " through SOCKET : "
+                        + entry.getValue());
+                SEND_SUMMATION.addAndGet(randomInt);
+                sendTo(event);
             }
-
-
         }
+
+        Event event = EventFactory.createTaskComplete(inetAddress, listeningPort);
+        sendEventToIp(registrySocket, event);
+    }
+
+    public void pullTrafficSummary() {
+        Event event = EventFactory.createTrafficSummary(inetAddress,
+                listeningPort,
+                SEND_TRACKER.get(),
+                RECIEVE_TRACKER.get(),
+                RELAY_TRACKER.get(),
+                SEND_SUMMATION.get(),
+                RECIEVE_TRACKER.get());
+        sendEventToIp(registrySocket, event);
+    }
+
+    private int getRandomInt() {
+        Random random = new Random();
+        return random.nextInt();
     }
 
     private static void sendEventToIp(Socket socket, Event event) {
@@ -240,6 +273,6 @@ public class MessagingNode implements Node {
 
     @Override
     public int getPort() {
-        return port;
+        return registryPort;
     }
 }

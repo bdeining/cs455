@@ -100,6 +100,18 @@ public class GraphTest {
     }
 
     @Test
+    public void testMessageNodeListWeight5ListCtor() {
+        graph = new Graph(generateNodes(5), 4);
+        graph.generateConnectedGraph();
+
+        String body = graph.generateLinkWeightBody();
+        List<String> stringList = Arrays.asList(body.split("\n"));
+        Graph graph2 = new Graph(stringList);
+        assertThat(graph.isGraphEqual(graph2), is(true));
+        assertThat(graph2.isConnected(), is(true));
+    }
+
+    @Test
     public void testShortestPath() {
 
         graph.generateConnectedGraph();
@@ -114,11 +126,14 @@ public class GraphTest {
             System.out.println(i + " " + dist[i]);
         }
 
-        ShortestPath.printPath(pred, 0, 1);
-        ShortestPath.printPath(pred, 0, 2);
-        ShortestPath.printPath(pred, 0, 3);
-        ShortestPath.printPath(pred, 0, 4);
-
+        List<Integer> integers = ShortestPath.printPath(pred, 0, 1);
+        System.out.println(integers);
+        integers = ShortestPath.printPath(pred, 0, 2);
+        System.out.println(integers);
+        integers = ShortestPath.printPath(pred, 0, 3);
+        System.out.println(integers);
+        integers = ShortestPath.printPath(pred, 0, 4);
+        System.out.println(integers);
 
     }
 
