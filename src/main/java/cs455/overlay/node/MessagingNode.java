@@ -232,6 +232,7 @@ public class MessagingNode implements Node {
                 Event event = EventFactory.createMessage(randomInt, source, randomDest);
                 System.out.println("Send message to : " + randomDest + " through SOCKET : "
                         + entry.getValue());
+                SEND_TRACKER.incrementAndGet();
                 SEND_SUMMATION.addAndGet(randomInt);
                 sendTo(event);
             }
@@ -248,8 +249,14 @@ public class MessagingNode implements Node {
                 RECIEVE_TRACKER.get(),
                 RELAY_TRACKER.get(),
                 SEND_SUMMATION.get(),
-                RECIEVE_TRACKER.get());
+                RECIEVE_SUMMATION.get());
         sendEventToIp(registrySocket, event);
+
+        SEND_TRACKER.set(0);
+        RECIEVE_TRACKER.set(0);
+        RELAY_TRACKER.set(0);
+        SEND_SUMMATION.set(0);
+        RECIEVE_SUMMATION.set(0);
     }
 
     private int getRandomInt() {

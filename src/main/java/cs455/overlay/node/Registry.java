@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import cs455.overlay.graph.Graph;
 import cs455.overlay.transport.TCPSender;
@@ -33,6 +34,16 @@ public class Registry implements Node {
     private static ConcurrentHashMap<String, Boolean> taskCompleteNodes;
 
     private Graph graph;
+
+    private static final AtomicLong SENT_SUM = new AtomicLong();
+
+    private static final AtomicLong RECIEVED_SUM = new AtomicLong();
+
+    private static final AtomicLong SENT_SUMMATION_SUM = new AtomicLong();
+
+    private static final AtomicLong RECIEVED_SUMMATION_SUM = new AtomicLong();
+
+    private ConcurrentHashMap<String, String> trafficSummary;
 
     private static ConcurrentHashMap<String, Connection> registeredNodes;
 
@@ -143,7 +154,7 @@ public class Registry implements Node {
     public void taskComplete(TaskComplete event) {
         String host = event.getIp() + ":" + event.getPort();
         taskCompleteNodes.put(host, true);
-        if(allNodesComplete()) {
+        if (allNodesComplete(taskCompleteNodes)) {
             try {
                 Thread.sleep(15000);
             } catch (InterruptedException e) {
@@ -154,31 +165,60 @@ public class Registry implements Node {
     }
 
     public void trafficSummary(TrafficSummary trafficSummary) {
+        String source = trafficSummary.getIp() + ":" + trafficSummary.getPort();
 
-        System.out.println(trafficSummary.getIp());
-        System.out.println(trafficSummary.getPort());
-        System.out.println(trafficSummary.getMessagesSent());
+        SENT_SUM.addAndGet(trafficSummary.getMessagesSent());
+        RECIEVED_SUM.addAndGet(trafficSummary.getMessagesRecieved());
+        SENT_SUMMATION_SUM.addAndGet(trafficSummary.getMessagesSentSummation());
+        RECIEVED_SUMMATION_SUM.addAndGet(trafficSummary.getMessagesRecievedSummation());
 
-        System.out.println(trafficSummary.getMessagesSent());
-        System.out.println(trafficSummary.getMessagesSentSummation());
+        String output = String.format("%10s%20s%20s%20s%20s%20s",
+                source,
+                trafficSummary.getMessagesSent(),
+                trafficSummary.getMessagesRecieved(),
+                trafficSummary.getMessagesSentSummation(),
+                trafficSummary.getMessagesRecievedSummation(),
+                trafficSummary.getMessagesRelayed());
 
-        System.out.println(trafficSummary.getMessagesRecieved());
-        System.out.println(trafficSummary.getMessagesRecievedSummation());
+        this.trafficSummary.put(source, output);
 
-        System.out.println(trafficSummary.getMessagesRelayed());
+        if (allNodesComplete(this.trafficSummary)) {
+            System.out.println(String.format("%10s%20s%20s%20s%20s%20s",
+                    "",
+                    "Sent",
+                    "Received",
+                    "Sent Sum",
+                    "Received Sum",
+                    "Relayed"));
+            for (String string : this.trafficSummary.values()) {
+                System.out.println(string);
+            }
+            System.out.println(String.format("%10s%20s%20s%20s%20s%20s",
+                    "Sum",
+                    SENT_SUM.get(),
+                    RECIEVED_SUM.get(),
+                    SENT_SUMMATION_SUM.get(),
+                    RECIEVED_SUMMATION_SUM.get(),
+                    ""));
+            SENT_SUM.set(0);
+            RECIEVED_SUM.set(0);
+            SENT_SUMMATION_SUM.set(0);
+            RECIEVED_SUMMATION_SUM.set(0);
+        }
     }
 
     private void sendPullTrafficSummary() {
-        for(Map.Entry<String, Connection> stringConnectionMap : registeredNodes.entrySet()) {
+        for (Map.Entry<String, Connection> stringConnectionMap : registeredNodes.entrySet()) {
             Event event = new PullTrafficSummary();
-            Socket socket = stringConnectionMap.getValue().getSocket();
+            Socket socket = stringConnectionMap.getValue()
+                    .getSocket();
             sendEventToIp(socket, event);
         }
     }
 
-    private boolean allNodesComplete() {
-        for(Map.Entry<String, Connection> stringConnectionMap : registeredNodes.entrySet()) {
-            if(!taskCompleteNodes.containsKey(stringConnectionMap.getKey())) {
+    private boolean allNodesComplete(ConcurrentHashMap concurrentHashMap) {
+        for (Map.Entry<String, Connection> stringConnectionMap : registeredNodes.entrySet()) {
+            if (!concurrentHashMap.containsKey(stringConnectionMap.getKey())) {
                 return false;
             }
         }
@@ -266,7 +306,7 @@ public class Registry implements Node {
         graph = new Graph(registeredHosts, numberOfConnections);
         graph.generateConnectedGraph();
 
-        for(Map.Entry<String, Connection> entry : registeredNodes.entrySet()) {
+        for (Map.Entry<String, Connection> entry : registeredNodes.entrySet()) {
             List<String> messageNode = graph.generateMessageNodeList(entry.getKey());
             System.out.println(messageNode.toString());
             Connection connection = entry.getValue();
@@ -274,7 +314,7 @@ public class Registry implements Node {
             Event event = EventFactory.createMessagingNodeList(messageNode.size(), messageNode);
             sendEventToIp(socket, event);
         }
-}
+    }
 
     /**
      * This should result in a Link_Weights message being sent to all registered nodes in the overlay. This
@@ -284,15 +324,16 @@ public class Registry implements Node {
      */
     public void sendOverlayLinkWeights() {
         System.out.println("sending link weights");
-        if(graph == null) {
+        if (graph == null) {
             return;
         }
 
         List<String> linkWeights = graph.generateLinkWeightList();
 
         Event event = EventFactory.createLinkWeights(linkWeights.size(), linkWeights);
-        for(Map.Entry<String, Connection> entry : registeredNodes.entrySet()) {
-            Socket socket = entry.getValue().getSocket();
+        for (Map.Entry<String, Connection> entry : registeredNodes.entrySet()) {
+            Socket socket = entry.getValue()
+                    .getSocket();
             sendEventToIp(socket, event);
         }
 
@@ -308,11 +349,13 @@ public class Registry implements Node {
      */
     public void start(int numberOfRounds) {
         taskCompleteNodes = new ConcurrentHashMap<>();
+        trafficSummary = new ConcurrentHashMap<>();
         System.out.println("starting : number of rounds " + numberOfRounds);
         Event event = EventFactory.createTaskInitiate(numberOfRounds);
 
-        for(Map.Entry<String, Connection> stringConnectionEntry : registeredNodes.entrySet()) {
-            Socket socket = stringConnectionEntry.getValue().getSocket();
+        for (Map.Entry<String, Connection> stringConnectionEntry : registeredNodes.entrySet()) {
+            Socket socket = stringConnectionEntry.getValue()
+                    .getSocket();
             sendEventToIp(socket, event);
         }
 
