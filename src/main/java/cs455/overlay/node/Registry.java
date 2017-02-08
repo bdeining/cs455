@@ -307,7 +307,7 @@ public class Registry implements Node {
     /*                              Message Handling                                       */
     /* ----------------------------------------------------------------------------------- */
 
-    public void taskComplete(TaskComplete event) {
+    public synchronized void taskComplete(TaskComplete event) {
         String host = event.getIp() + ":" + event.getPort();
         taskCompleteNodes.put(host, true);
         if (allNodesComplete(taskCompleteNodes)) {
