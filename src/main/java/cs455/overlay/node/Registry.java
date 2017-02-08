@@ -320,7 +320,7 @@ public class Registry implements Node {
         }
     }
 
-    public void trafficSummary(TrafficSummary trafficSummary) {
+    public synchronized void trafficSummary(TrafficSummary trafficSummary) {
         String source = trafficSummary.getIp() + ":" + trafficSummary.getPort();
         TOTAL_TRAFFIC_SUMMARY.incrementAndGet();
         SENT_SUM.addAndGet(trafficSummary.getMessagesSent());
@@ -374,7 +374,7 @@ public class Registry implements Node {
         }
     }
 
-    private boolean allNodesComplete(ConcurrentHashMap concurrentHashMap) {
+    private synchronized boolean allNodesComplete(ConcurrentHashMap concurrentHashMap) {
         for (Map.Entry<String, Connection> stringConnectionMap : registeredNodes.entrySet()) {
             if (!concurrentHashMap.containsKey(stringConnectionMap.getKey())) {
                 return false;

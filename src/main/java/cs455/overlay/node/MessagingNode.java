@@ -162,6 +162,8 @@ public class MessagingNode implements Node {
 
     public void setupMessagingNodeLinks(List<String> nodes, int numberOfPeers) {
         if (numberOfPeers == 0) {
+            System.out.println(
+                    "All connections are established. Number of connections: " + numberOfPeers);
             return;
         }
 
@@ -195,7 +197,7 @@ public class MessagingNode implements Node {
         }
 
         System.out.println(
-                "All connections are established. Number of connections: " + connections.size());
+                "All connections are established. Number of connections: " + numberOfPeers);
     }
 
     public void processMessage(Event event) {
