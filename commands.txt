@@ -4,9 +4,8 @@ cd target/ ; java -jar registry-jar-with-dependencies.jar 50000 ; cd ..
 cd target/ ; java -jar messagingNode-jar-with-dependencies.jar "localhost" "50000" ; cd ..
 
 TODO:
+Registry Communication Request / Response
 Checksum
-Relay Messages
-Summations
 Clean up
 Proper printing statements
 Verification

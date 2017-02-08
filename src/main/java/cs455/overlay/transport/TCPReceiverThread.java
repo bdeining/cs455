@@ -59,7 +59,7 @@ public class TCPReceiverThread implements Runnable {
                 case 2:
                     if (node instanceof Registry) {
                         DeregisterRequest deregisterRequest = (DeregisterRequest) event;
-                        ((Registry) node).deRegisterNode(socket, deregisterRequest.getPort());
+                        ((Registry) node).deRegisterNode(socket, deregisterRequest.getIpAddress(), deregisterRequest.getPort());
                     }
                     break;
                 case 3:

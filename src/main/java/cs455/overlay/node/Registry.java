@@ -1,12 +1,15 @@
 package cs455.overlay.node;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import cs455.overlay.graph.Graph;
@@ -29,13 +32,9 @@ public class Registry implements Node {
 
     private static final String START_COMMAND = "start";
 
-    private static TCPServerThread tcpServerThread;
-
-    private static ConcurrentHashMap<String, Boolean> taskCompleteNodes;
-
-    private Graph graph;
-
     private static final AtomicLong SENT_SUM = new AtomicLong();
+
+    private static final AtomicInteger TOTAL_TRAFFIC_SUMMARY = new AtomicInteger();
 
     private static final AtomicLong RECIEVED_SUM = new AtomicLong();
 
@@ -43,9 +42,19 @@ public class Registry implements Node {
 
     private static final AtomicLong RECIEVED_SUMMATION_SUM = new AtomicLong();
 
-    private ConcurrentHashMap<String, String> trafficSummary;
+    private static TCPServerThread tcpServerThread;
+
+    private static ConcurrentHashMap<String, Boolean> taskCompleteNodes;
 
     private static ConcurrentHashMap<String, Connection> registeredNodes;
+
+    private static int portnum;
+
+    private static String inetAddress;
+
+    private Graph graph;
+
+    private ConcurrentHashMap<String, String> trafficSummary;
 
     public static void main(String[] args) {
         if (args.length != 1) {
@@ -53,14 +62,14 @@ public class Registry implements Node {
         }
         Registry registry = null;
         try {
-            int portnum = Integer.parseInt(args[0]);
-            registry = new Registry(portnum);
+            portnum = Integer.parseInt(args[0]);
+            registry = new Registry();
         } catch (NumberFormatException e) {
             e.printStackTrace();
         }
 
         if (registry == null) {
-            System.out.println("failed to set up registry");
+            System.out.println("Failed to set up registry");
             return;
         }
 
@@ -102,54 +111,201 @@ public class Registry implements Node {
         return integer;
     }
 
-    public Registry(int portnum) {
+    public Registry() {
+        try {
+            inetAddress = InetAddress.getLocalHost()
+                    .getHostAddress();
+        } catch (UnknownHostException e) {
+            System.out.println("Unable to get host information.");
+        }
+
         registeredNodes = new ConcurrentHashMap<>();
         tcpServerThread = new TCPServerThread(this, portnum);
-
         new Thread(tcpServerThread).start();
     }
 
+    @Override
+    public String getHostname() {
+        return inetAddress;
+    }
+
+    @Override
+    public int getPort() {
+        return portnum;
+    }
+
     public void registerNode(Socket socket, String eventIp, int port) {
-        if (registeredNodes == null) {
-            return;
-        }
-
-        String ip = socket.getInetAddress()
-                .getHostAddress();
+        String ip = socket.getInetAddress().getHostAddress();
         Event event;
+        byte statusCode = 0;
 
-        System.out.println(eventIp + " = " + ip);
-
+        /* Check if there is a mismatch in the address that is specified in the registration
+           request and the IP address of the request (the socket’s input stream). */
         if (!eventIp.equals(ip)) {
-            byte statusCode = 0;
+            statusCode = 0;
             event = EventFactory.createRegisterRespone(statusCode,
-                    "Registration request "
-                            + "unsuccessful. The number of messaging nodes currently constituting the overlay is "
-                            + registeredNodes.size());
+                    "Registration request unsuccessful.  There is a mismatch between the address specified and the originating ip.");
             sendEventToIp(socket, event);
-
         }
 
+        /* Check if the node had previously registered and has a valid entry in its registry. */
         if (!registeredNodes.containsKey(ip)) {
             registeredNodes.put(ip + ":" + port, new Connection(socket, port));
-
-            byte statusCode = 1;
+            statusCode = 1;
             event = EventFactory.createRegisterRespone(statusCode,
                     "Registration request "
                             + "successful. The number of messaging nodes currently constituting the overlay is "
                             + registeredNodes.size());
 
         } else {
-            byte statusCode = 0;
             event = EventFactory.createRegisterRespone(statusCode,
-                    "Registration request "
-                            + "unsuccessful. The number of messaging nodes currently constituting the overlay is "
-                            + registeredNodes.size());
-
+                    "Registration request unsuccessful. This node is already registered");
         }
-        printRegisteredNodes();
+
+        try {
+            sendEventToIpWithoutCatch(socket, event);
+        } catch (IOException e) {
+            if(registeredNodes.containsKey(ip)) {
+                registeredNodes.remove(ip);
+                System.out.println("Unable to send Registry Response to " + ip + ".  De-registering node.");
+            }
+        }
+    }
+
+    public void deRegisterNode(Socket socket, String eventIp, int port) {
+        Event event;
+        String ip = socket.getInetAddress().getHostAddress() + ":" + port;
+        byte statusCode = 0;
+
+        /* Check if there is a mismatch in the address that is specified in the deregistration
+           request and the IP address of the request (the socket’s input stream). */
+        if (!eventIp.equals(ip)) {
+            event = EventFactory.createDeregisterResponse(statusCode,
+                    "Deregistration request unsuccessful.  There is a mismatch between the address specified and the originating ip.");
+            sendEventToIp(socket, event);
+        }
+
+
+        if (registeredNodes.containsKey(ip)) {
+            registeredNodes.remove(socket);
+            statusCode = 1;
+            event = EventFactory.createDeregisterResponse(statusCode,
+                    "Deregistration request "
+                            + "successful. The number of messaging nodes currently constituting the overlay is "
+                            + registeredNodes.size());
+        } else {
+            event = EventFactory.createDeregisterResponse(statusCode,
+                    "Deregistration request unsuccessful. This node is not registed with the registry.");
+        }
+
         sendEventToIp(socket, event);
     }
+
+    /**
+     * This should result in information about the messaging nodes (hostname, and port-number) being
+     * listed. Information for each messaging node should be listed on a separate line.
+     **/
+    public void listMessagingNodes() {
+        registeredNodes.keySet().forEach(System.out::println);
+
+/*        for (Map.Entry<String, Connection> entry : registeredNodes.entrySet()) {
+            Socket socket = entry.getValue()
+                    .getSocket();
+            System.out.println(socket.getInetAddress()
+                    .getHostAddress() + ":" + socket.getPort());
+        }*/
+    }
+
+    /**
+     * This should list information about links comprising the overlay. Each link’s information should be on
+     * a separate line and include information about the nodes that it connects and the weight of that link.
+     * For example, carrot.cs.colostate.edu:2000 broccoli.cs.colostate.edu:5001 8, indicates that
+     * the link is between two messaging nodes (carrot.cs.colostate.edu:2000) and
+     * (broccoli.cs.colostate.edu:5001) with a link weight of 8.
+     */
+    public void listWeights() {
+        if(graph == null) {
+            System.out.println("No links have been weighted yet");
+            return;
+        }
+        List<String> linkWeights = graph.generateLinkWeightList();
+        linkWeights.forEach(System.out::println);
+    }
+
+    /**
+     * This should result in the registry setting up the overlay. It does so by sending messaging nodes
+     * messages containing information about the messaging nodes that it should connect to. The registry
+     * tracks the connection counts for each messaging node and will send the MESSAGING_NODES_LIST
+     * message (see Section 2.3) to every messaging node. A sample specification of this command is
+     * setup-overlay 4 that will result in the creation of an overlay where each messaging node is
+     * connected to exactly 4 other messaging nodes in the overlay. You should handle the error condition
+     * where the number of messaging nodes is less than the connection limit that is specified.
+     * NOTE: You are not required to deal with the case where a messaging node is added or removed after
+     * the overlay has been set up. You must however deal with the case where a messaging node registers
+     * and deregisters from the registry before the overlay is set up.
+     *
+     * @param numberOfConnections
+     */
+    public void setupOverlay(int numberOfConnections) {
+        if(registeredNodes.size() < numberOfConnections ) {
+            System.out.println("Unable to set-up overlay.  The number of connections is greater than the number of registered nodes.");
+            return;
+        }
+
+        List<String> registeredHosts = Collections.list(registeredNodes.keys());
+        graph = new Graph(registeredHosts, numberOfConnections);
+        graph.generateConnectedGraph();
+
+        for (Map.Entry<String, Connection> entry : registeredNodes.entrySet()) {
+            List<String> messageNode = graph.generateMessageNodeList(entry.getKey());
+            Connection connection = entry.getValue();
+            Socket socket = connection.getSocket();
+            Event event = EventFactory.createMessagingNodeList(messageNode.size(), messageNode);
+            sendEventToIp(socket, event);
+        }
+    }
+
+    /**
+     * This should result in a Link_Weights message being sent to all registered nodes in the overlay. This
+     * command is issued once after the setup-overlay command has been issued. This also allows all
+     * nodes in the system to be aware of not just all the nodes in the system, but also the complete set of
+     * links in the system.
+     */
+    public void sendOverlayLinkWeights() {
+        if (graph == null) {
+            return;
+        }
+
+        List<String> linkWeights = graph.generateLinkWeightList();
+
+        Event event = EventFactory.createLinkWeights(linkWeights.size(), linkWeights);
+        for (Connection connection : registeredNodes.values()) {
+            Socket socket = connection.getSocket();
+            sendEventToIp(socket, event);
+        }
+    }
+
+    /**
+     * The start command results in nodes exchanging messages within the overlay. Each node in the
+     * overlay will be responding for sending number-of-rounds messages. An advantage of this is that you
+     * are able to debug your system with a smaller set of messages and verify correctness of your programs
+     * across a wide range of values. A detailed description is provided in section 4 below.
+     *
+     * @param numberOfRounds
+     */
+    public void start(int numberOfRounds) {
+        taskCompleteNodes = new ConcurrentHashMap<>();
+        trafficSummary = new ConcurrentHashMap<>();
+        Event event = EventFactory.createTaskInitiate(numberOfRounds);
+
+        for (Connection connection : registeredNodes.values()) {
+            Socket socket = connection.getSocket();
+            sendEventToIp(socket, event);
+        }
+    }
+
+    /*                              Message Handling                                       */
+    /* ----------------------------------------------------------------------------------- */
 
     public void taskComplete(TaskComplete event) {
         String host = event.getIp() + ":" + event.getPort();
@@ -166,7 +322,7 @@ public class Registry implements Node {
 
     public void trafficSummary(TrafficSummary trafficSummary) {
         String source = trafficSummary.getIp() + ":" + trafficSummary.getPort();
-
+        TOTAL_TRAFFIC_SUMMARY.incrementAndGet();
         SENT_SUM.addAndGet(trafficSummary.getMessagesSent());
         RECIEVED_SUM.addAndGet(trafficSummary.getMessagesRecieved());
         SENT_SUMMATION_SUM.addAndGet(trafficSummary.getMessagesSentSummation());
@@ -182,7 +338,7 @@ public class Registry implements Node {
 
         this.trafficSummary.put(source, output);
 
-        if (allNodesComplete(this.trafficSummary)) {
+        if (allNodesComplete(this.trafficSummary) && TOTAL_TRAFFIC_SUMMARY.get() == this.trafficSummary.size()) {
             System.out.println(String.format("%10s%20s%20s%20s%20s%20s",
                     "",
                     "Sent",
@@ -190,9 +346,8 @@ public class Registry implements Node {
                     "Sent Sum",
                     "Received Sum",
                     "Relayed"));
-            for (String string : this.trafficSummary.values()) {
-                System.out.println(string);
-            }
+            this.trafficSummary.values().forEach(System.out::println);
+
             System.out.println(String.format("%10s%20s%20s%20s%20s%20s",
                     "Sum",
                     SENT_SUM.get(),
@@ -204,6 +359,9 @@ public class Registry implements Node {
             RECIEVED_SUM.set(0);
             SENT_SUMMATION_SUM.set(0);
             RECIEVED_SUMMATION_SUM.set(0);
+            TOTAL_TRAFFIC_SUMMARY.set(0);
+            taskCompleteNodes = new ConcurrentHashMap<>();
+            this.trafficSummary = new ConcurrentHashMap<>();
         }
     }
 
@@ -226,8 +384,9 @@ public class Registry implements Node {
         return true;
     }
 
-    private static void printRegisteredNodes() {
-        System.out.println(registeredNodes.toString());
+    private static void sendEventToIpWithoutCatch(Socket socket, Event event) throws IOException {
+        TCPSender tcpSender = new TCPSender(socket);
+        tcpSender.sendData(event.getBytes());
     }
 
     private static void sendEventToIp(Socket socket, Event event) {
@@ -237,138 +396,6 @@ public class Registry implements Node {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public void deRegisterNode(Socket socket, int port) {
-        Event event;
-        String ip = socket.getInetAddress()
-                .getHostAddress() + ":" + port;
-
-        if (registeredNodes.containsKey(ip)) {
-            registeredNodes.remove(socket);
-            byte statusCode = 1;
-            event = EventFactory.createDeregisterResponse(statusCode,
-                    "Deregistration request "
-                            + "successful. The number of messaging nodes currently constituting the overlay is "
-                            + registeredNodes.size());
-        } else {
-            byte statusCode = 0;
-            event = EventFactory.createDeregisterResponse(statusCode,
-                    "Deregistration request "
-                            + "unsuccessful. The number of messaging nodes currently constituting the overlay is "
-                            + registeredNodes.size());
-        }
-
-        sendEventToIp(socket, event);
-    }
-
-    /**
-     * This should result in information about the messaging nodes (hostname, and port-number) being
-     * listed. Information for each messaging node should be listed on a separate line.
-     **/
-    public void listMessagingNodes() {
-        for (Map.Entry<String, Connection> entry : registeredNodes.entrySet()) {
-            Socket socket = entry.getValue()
-                    .getSocket();
-            System.out.println(socket.getInetAddress()
-                    .getHostAddress() + ":" + socket.getPort());
-        }
-    }
-
-    /**
-     * This should list information about links comprising the overlay. Each link’s information should be on
-     * a separate line and include information about the nodes that it connects and the weight of that link.
-     * For example, carrot.cs.colostate.edu:2000 broccoli.cs.colostate.edu:5001 8, indicates that
-     * the link is between two messaging nodes (carrot.cs.colostate.edu:2000) and
-     * (broccoli.cs.colostate.edu:5001) with a link weight of 8.
-     */
-    public void listWeights() {
-        System.out.println("listing weights");
-    }
-
-    /**
-     * This should result in the registry setting up the overlay. It does so by sending messaging nodes
-     * messages containing information about the messaging nodes that it should connect to. The registry
-     * tracks the connection counts for each messaging node and will send the MESSAGING_NODES_LIST
-     * message (see Section 2.3) to every messaging node. A sample specification of this command is
-     * setup-overlay 4 that will result in the creation of an overlay where each messaging node is
-     * connected to exactly 4 other messaging nodes in the overlay. You should handle the error condition
-     * where the number of messaging nodes is less than the connection limit that is specified.
-     * NOTE: You are not required to deal with the case where a messaging node is added or removed after
-     * the overlay has been set up. You must however deal with the case where a messaging node registers
-     * and deregisters from the registry before the overlay is set up.
-     *
-     * @param numberOfConnections
-     */
-    public void setupOverlay(int numberOfConnections) {
-        System.out.println("setup overlay + " + numberOfConnections);
-        List<String> registeredHosts = Collections.list(registeredNodes.keys());
-        graph = new Graph(registeredHosts, numberOfConnections);
-        graph.generateConnectedGraph();
-
-        for (Map.Entry<String, Connection> entry : registeredNodes.entrySet()) {
-            List<String> messageNode = graph.generateMessageNodeList(entry.getKey());
-            System.out.println(messageNode.toString());
-            Connection connection = entry.getValue();
-            Socket socket = connection.getSocket();
-            Event event = EventFactory.createMessagingNodeList(messageNode.size(), messageNode);
-            sendEventToIp(socket, event);
-        }
-    }
-
-    /**
-     * This should result in a Link_Weights message being sent to all registered nodes in the overlay. This
-     * command is issued once after the setup-overlay command has been issued. This also allows all
-     * nodes in the system to be aware of not just all the nodes in the system, but also the complete set of
-     * links in the system.
-     */
-    public void sendOverlayLinkWeights() {
-        System.out.println("sending link weights");
-        if (graph == null) {
-            return;
-        }
-
-        List<String> linkWeights = graph.generateLinkWeightList();
-
-        Event event = EventFactory.createLinkWeights(linkWeights.size(), linkWeights);
-        for (Map.Entry<String, Connection> entry : registeredNodes.entrySet()) {
-            Socket socket = entry.getValue()
-                    .getSocket();
-            sendEventToIp(socket, event);
-        }
-
-    }
-
-    /**
-     * The start command results in nodes exchanging messages within the overlay. Each node in the
-     * overlay will be responding for sending number-of-rounds messages. An advantage of this is that you
-     * are able to debug your system with a smaller set of messages and verify correctness of your programs
-     * across a wide range of values. A detailed description is provided in section 4 below.
-     *
-     * @param numberOfRounds
-     */
-    public void start(int numberOfRounds) {
-        taskCompleteNodes = new ConcurrentHashMap<>();
-        trafficSummary = new ConcurrentHashMap<>();
-        System.out.println("starting : number of rounds " + numberOfRounds);
-        Event event = EventFactory.createTaskInitiate(numberOfRounds);
-
-        for (Map.Entry<String, Connection> stringConnectionEntry : registeredNodes.entrySet()) {
-            Socket socket = stringConnectionEntry.getValue()
-                    .getSocket();
-            sendEventToIp(socket, event);
-        }
-
-    }
-
-    @Override
-    public String getHostname() {
-        return null;
-    }
-
-    @Override
-    public int getPort() {
-        return 0;
     }
 }
 

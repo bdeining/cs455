@@ -34,8 +34,4 @@ public class Edge {
     public int getVertex() {
         return vertex;
     }
-
-    public void setWeight(int weight) {
-        this.weight = weight;
-    }
 }

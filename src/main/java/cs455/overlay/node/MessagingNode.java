@@ -120,6 +120,7 @@ public class MessagingNode implements Node {
 
     public void generateMapFromLinkWeights(LinkWeights event) {
         graph = new Graph(event.getLinks());
+        System.out.println("Link weights are received and processed. Ready to send messages.");
     }
 
     /**
@@ -156,7 +157,6 @@ public class MessagingNode implements Node {
     }
 
     public void addSocket(String hostName, Socket socket) {
-        System.out.println("Adding socket : " + hostName);
         connections.put(hostName, socket);
     }
 
@@ -166,10 +166,10 @@ public class MessagingNode implements Node {
         }
 
         for (String node : nodes) {
-            System.out.println(node);
             String[] split = node.split(" ");
             String[] strings = split[1].split(":");
             if (strings.length != 2) {
+                System.out.println(node);
                 continue;
             }
 
@@ -193,6 +193,9 @@ public class MessagingNode implements Node {
                 e.printStackTrace();
             }
         }
+
+        System.out.println(
+                "All connections are established. Number of connections: " + connections.size());
     }
 
     public void processMessage(Event event) {
@@ -201,8 +204,6 @@ public class MessagingNode implements Node {
         /* Recieve message */
         if (message.getDestination()
                 .equals(inetAddress + ":" + listeningPort)) {
-            System.out.println(
-                    "Message received from " + message.getSource() + " : " + message.getPayload());
             RECIEVE_TRACKER.incrementAndGet();
             RECIEVE_SUMMATION.addAndGet(message.getPayload());
             return;
@@ -223,15 +224,17 @@ public class MessagingNode implements Node {
     }
 
     public void startRounds(int numberOfRounds) {
+        if (graph == null) {
+            System.out.println("Unable to start round, overlay may not have been set up.");
+        }
+
         String source = inetAddress + ":" + listeningPort;
 
         for (int i = 0; i < numberOfRounds; i++) {
-            for (Map.Entry<String, Socket> entry : connections.entrySet()) {
+            for (int c=0; c < 5; c++) {
                 String randomDest = graph.getRandomHost(inetAddress + ":" + listeningPort);
                 int randomInt = getRandomInt();
                 Event event = EventFactory.createMessage(randomInt, source, randomDest);
-                System.out.println("Send message to : " + randomDest + " through SOCKET : "
-                        + entry.getValue());
                 SEND_TRACKER.incrementAndGet();
                 SEND_SUMMATION.addAndGet(randomInt);
                 sendTo(event);
