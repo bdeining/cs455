@@ -200,7 +200,7 @@ public class MessagingNode implements Node {
                 "All connections are established. Number of connections: " + numberOfPeers);
     }
 
-    public void processMessage(Event event) {
+    public synchronized void processMessage(Event event) {
         Message message = (Message) event;
 
         /* Recieve message */
@@ -216,7 +216,7 @@ public class MessagingNode implements Node {
         sendTo(event);
     }
 
-    private void sendTo(Event event) {
+    private synchronized void sendTo(Event event) {
         Message message = (Message) event;
         String destination = message.getDestination();
         List<String> paths = graph.getShortestPath(inetAddress + ":" + listeningPort, destination);
@@ -269,7 +269,7 @@ public class MessagingNode implements Node {
         return random.nextInt();
     }
 
-    private static void sendEventToIp(Socket socket, Event event) {
+    private synchronized static void sendEventToIp(Socket socket, Event event) {
         try {
             TCPSender tcpSender = new TCPSender(socket);
             tcpSender.sendData(event.getBytes());
