@@ -4,20 +4,15 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import cs455.overlay.node.MessagingNode;
 import cs455.overlay.node.Node;
 
 public class TCPServerThread implements Runnable {
-
-    private int portNum;
-
     private Node node;
 
     private ServerSocket serverSocket;
 
     public TCPServerThread(Node node, int portNum) {
         this.node = node;
-        this.portNum = portNum;
         try {
             serverSocket = new ServerSocket(portNum);
         } catch (IOException e) {

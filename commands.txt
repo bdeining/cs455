@@ -4,9 +4,7 @@ cd target/ ; java -jar registry-jar-with-dependencies.jar 50000 ; cd ..
 cd target/ ; java -jar messagingNode-jar-with-dependencies.jar "localhost" "50000" ; cd ..
 
 TODO:
-Deregister on IOException
-Registry Communication Request / Response
-Checksum
+
 Clean up
 Proper printing statements
 Verification

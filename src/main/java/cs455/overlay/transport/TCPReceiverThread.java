@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.zip.CRC32;
 
 import cs455.overlay.node.MessagingNode;
 import cs455.overlay.node.Node;
@@ -38,10 +39,18 @@ public class TCPReceiverThread implements Runnable {
 
         while (socket != null) {
             try {
+                long receivedChecksum = dataInputStream.readLong();
+
                 int dataLength = dataInputStream.readInt();
 
                 byte[] data = new byte[dataLength];
                 dataInputStream.readFully(data);
+
+                long checksum = generateChecksum(data);
+                if (checksum != receivedChecksum) {
+                    System.out.println("Corrupted message found.  Skipping.");
+                    continue;
+                }
 
                 int type = readIntFromByteArray(data);
 
@@ -76,7 +85,6 @@ public class TCPReceiverThread implements Runnable {
                         MessagingNodesList messagingNodesList = (MessagingNodesList) event;
                         ((MessagingNode) node).setupMessagingNodeLinks(messagingNodesList.getMessagingNodes(),
                                 messagingNodesList.getNumberOfPeers());
-
                     }
                     break;
                 case 6:
@@ -137,6 +145,12 @@ public class TCPReceiverThread implements Runnable {
                 ((data[0] & 0xFF) << 24) | ((data[1] & 0xFF) << 16) | ((data[2] & 0xFF) << 8) | (
                         data[3] & 0xFF);
         return value;
+    }
+
+    public long generateChecksum(byte[] dataToSend) {
+        CRC32 crc32 = new CRC32();
+        crc32.update(dataToSend);
+        return crc32.getValue();
     }
 
 }

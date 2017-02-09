@@ -324,16 +324,16 @@ public class Registry implements Node {
         String source = trafficSummary.getIp() + ":" + trafficSummary.getPort();
         TOTAL_TRAFFIC_SUMMARY.incrementAndGet();
         SENT_SUM.addAndGet(trafficSummary.getMessagesSent());
-        RECIEVED_SUM.addAndGet(trafficSummary.getMessagesRecieved());
+        RECIEVED_SUM.addAndGet(trafficSummary.getMessagesReceived());
         SENT_SUMMATION_SUM.addAndGet(trafficSummary.getMessagesSentSummation());
-        RECIEVED_SUMMATION_SUM.addAndGet(trafficSummary.getMessagesRecievedSummation());
+        RECIEVED_SUMMATION_SUM.addAndGet(trafficSummary.getMessagesReceivedSummation());
 
         String output = String.format("%10s%20s%20s%20s%20s%20s",
                 source,
                 trafficSummary.getMessagesSent(),
-                trafficSummary.getMessagesRecieved(),
+                trafficSummary.getMessagesReceived(),
                 trafficSummary.getMessagesSentSummation(),
-                trafficSummary.getMessagesRecievedSummation(),
+                trafficSummary.getMessagesReceivedSummation(),
                 trafficSummary.getMessagesRelayed());
 
         this.trafficSummary.put(source, output);

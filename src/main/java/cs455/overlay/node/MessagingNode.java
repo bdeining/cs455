@@ -30,13 +30,13 @@ public class MessagingNode implements Node {
 
     private static final AtomicInteger SEND_TRACKER = new AtomicInteger(0);
 
-    private static final AtomicInteger RECIEVE_TRACKER = new AtomicInteger(0);
+    private static final AtomicInteger RECEIVE_TRACKER = new AtomicInteger(0);
 
     private static final AtomicInteger RELAY_TRACKER = new AtomicInteger(0);
 
     private static final AtomicLong SEND_SUMMATION = new AtomicLong(0);
 
-    private static final AtomicLong RECIEVE_SUMMATION = new AtomicLong(0);
+    private static final AtomicLong RECEIVE_SUMMATION = new AtomicLong(0);
 
     private Socket registrySocket;
 
@@ -206,8 +206,8 @@ public class MessagingNode implements Node {
         /* Recieve message */
         if (message.getDestination()
                 .equals(inetAddress + ":" + listeningPort)) {
-            RECIEVE_TRACKER.incrementAndGet();
-            RECIEVE_SUMMATION.addAndGet(message.getPayload());
+            RECEIVE_TRACKER.incrementAndGet();
+            RECEIVE_SUMMATION.addAndGet(message.getPayload());
             return;
         }
 
@@ -233,8 +233,8 @@ public class MessagingNode implements Node {
         String source = inetAddress + ":" + listeningPort;
 
         for (int i = 0; i < numberOfRounds; i++) {
+            String randomDest = graph.getRandomHost(inetAddress + ":" + listeningPort);
             for (int c=0; c < 5; c++) {
-                String randomDest = graph.getRandomHost(inetAddress + ":" + listeningPort);
                 int randomInt = getRandomInt();
                 Event event = EventFactory.createMessage(randomInt, source, randomDest);
                 SEND_TRACKER.incrementAndGet();
@@ -251,17 +251,17 @@ public class MessagingNode implements Node {
         Event event = EventFactory.createTrafficSummary(inetAddress,
                 listeningPort,
                 SEND_TRACKER.get(),
-                RECIEVE_TRACKER.get(),
+                RECEIVE_TRACKER.get(),
                 RELAY_TRACKER.get(),
                 SEND_SUMMATION.get(),
-                RECIEVE_SUMMATION.get());
+                RECEIVE_SUMMATION.get());
         sendEventToIp(registrySocket, event);
 
         SEND_TRACKER.set(0);
-        RECIEVE_TRACKER.set(0);
+        RECEIVE_TRACKER.set(0);
         RELAY_TRACKER.set(0);
         SEND_SUMMATION.set(0);
-        RECIEVE_SUMMATION.set(0);
+        RECEIVE_SUMMATION.set(0);
     }
 
     private int getRandomInt() {

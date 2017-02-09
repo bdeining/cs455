@@ -15,23 +15,23 @@ public class TrafficSummary implements Event {
 
     private int messagesSent;
 
-    private int messagesRecieved;
+    private int messagesReceived;
 
     private int messagesRelayed;
 
     private long messagesSentSummation;
 
-    private long messagesRecievedSummation;
+    private long messagesReceivedSummation;
 
-    public TrafficSummary(String ip, int port, int messagesSent, int messagesRecieved,
-            int messagesRelayed, long messagesSentSummation, long messagesRecievedSummation) {
+    public TrafficSummary(String ip, int port, int messagesSent, int messagesReceived,
+            int messagesRelayed, long messagesSentSummation, long messagesReceivedSummation) {
         this.ip = ip;
         this.port = port;
         this.messagesSent = messagesSent;
-        this.messagesRecieved = messagesRecieved;
+        this.messagesReceived = messagesReceived;
         this.messagesRelayed = messagesRelayed;
         this.messagesSentSummation = messagesSentSummation;
-        this.messagesRecievedSummation = messagesRecievedSummation;
+        this.messagesReceivedSummation = messagesReceivedSummation;
     }
 
     public TrafficSummary(byte[] bytes) throws IOException {
@@ -47,9 +47,9 @@ public class TrafficSummary implements Event {
         port = dataInputStream.readInt();
 
         messagesSent = dataInputStream.readInt();
-        messagesRecieved = dataInputStream.readInt();
+        messagesReceived = dataInputStream.readInt();
         messagesRelayed = dataInputStream.readInt();
-        messagesRecievedSummation = dataInputStream.readLong();
+        messagesReceivedSummation = dataInputStream.readLong();
         messagesSentSummation = dataInputStream.readLong();
 
         dataInputStream.close();
@@ -68,9 +68,9 @@ public class TrafficSummary implements Event {
         dataOutputStream.write(element);
         dataOutputStream.writeInt(port);
         dataOutputStream.writeInt(messagesSent);
-        dataOutputStream.writeInt(messagesRecieved);
+        dataOutputStream.writeInt(messagesReceived);
         dataOutputStream.writeInt(messagesRelayed);
-        dataOutputStream.writeLong(messagesRecievedSummation);
+        dataOutputStream.writeLong(messagesReceivedSummation);
         dataOutputStream.writeLong(messagesSentSummation);
 
         dataOutputStream.flush();
@@ -88,8 +88,8 @@ public class TrafficSummary implements Event {
         return messagesSent;
     }
 
-    public int getMessagesRecieved() {
-        return messagesRecieved;
+    public int getMessagesReceived() {
+        return messagesReceived;
     }
 
     public int getMessagesRelayed() {
@@ -100,8 +100,8 @@ public class TrafficSummary implements Event {
         return messagesSentSummation;
     }
 
-    public long getMessagesRecievedSummation() {
-        return messagesRecievedSummation;
+    public long getMessagesReceivedSummation() {
+        return messagesReceivedSummation;
     }
 
     public int getPort() {

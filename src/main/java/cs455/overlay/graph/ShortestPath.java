@@ -22,15 +22,14 @@ public class ShortestPath {
             final int next = minVertex(dist, visited);
             visited[next] = true;
 
-            final List<Edge> n = graph.getAdjacencyList()
+            final List<Edge> edges = graph.getAdjacencyList()
                     .get(next);
-            for (int j = 0; j < n.size(); j++) {
-                final int v = n.get(j)
-                        .getVertex();
-                final int d = dist[next] + graph.getWeight(next, v);
-                if (dist[v] > d) {
-                    dist[v] = d;
-                    pred[v] = next;
+            for (int j = 0; j < edges.size(); j++) {
+                final int vertex = edges.get(j).getVertex();
+                final int distance = dist[next] + graph.getWeight(next, vertex);
+                if (dist[vertex] > distance) {
+                    dist[vertex] = distance;
+                    pred[vertex] = next;
                 }
             }
         }
@@ -38,27 +37,25 @@ public class ShortestPath {
     }
 
     private static int minVertex(int[] dist, boolean[] visited) {
-        int x = Integer.MAX_VALUE;
-        int y = -1;
+        int minimumValue = Integer.MAX_VALUE;
+        int vertex = -1;
         for (int i = 0; i < dist.length; i++) {
-            if (!visited[i] && dist[i] < x) {
-                y = i;
-                x = dist[i];
+            if (!visited[i] && dist[i] < minimumValue) {
+                vertex = i;
+                minimumValue = dist[i];
             }
         }
-        return y;
+        return vertex;
     }
 
     public static List<Integer> printPath(int[] pred, int source, int edge) {
         final List<Integer> path = new ArrayList<>();
-        int x = edge;
-        while (x != source) {
-            path.add(0, x);
-            x = pred[x];
+        int vertex = edge;
+        while (vertex != source) {
+            path.add(0, vertex);
+            vertex = pred[vertex];
         }
         path.add(0, source);
-        System.out.println(path);
         return path;
     }
-
 }
