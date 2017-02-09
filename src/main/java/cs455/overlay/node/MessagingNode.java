@@ -5,7 +5,6 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
@@ -109,13 +108,9 @@ public class MessagingNode implements Node {
 
             tcpSender.sendData(wrappedData);
 
-        } catch (UnknownHostException e) {
-            System.out.println("Unknown host: kq6py");
         } catch (IOException e) {
-            System.out.println("No I/O");
-
+            System.out.println("Could not communicate with registry.");
         }
-
     }
 
     public void generateMapFromLinkWeights(LinkWeights event) {
@@ -129,13 +124,11 @@ public class MessagingNode implements Node {
      * e.g. carrot–-8––broccoli––4––-zucchini––-2––brussels––1––onion
      */
     public void printShortestPath() {
-        StringBuilder stringBuilder = new StringBuilder("");
-        for (Map.Entry<String, Socket> entry : connections.entrySet()) {
-            List<String> shortestPaths = graph.getShortestPath(inetAddress + ":" + listeningPort,
-                    entry.getKey());
-            //            stringBuilder.append(shortestPaths.)
-            System.out.println(shortestPaths.toString());
+        if (graph == null) {
+            System.out.println("Could not print shortest paths, graph may not have been initialized.");
+            return;
         }
+        System.out.println(graph.getShortestPathList());
     }
 
     /**
@@ -171,7 +164,6 @@ public class MessagingNode implements Node {
             String[] split = node.split(" ");
             String[] strings = split[1].split(":");
             if (strings.length != 2) {
-                System.out.println(node);
                 continue;
             }
 
@@ -203,7 +195,7 @@ public class MessagingNode implements Node {
     public synchronized void processMessage(Event event) {
         Message message = (Message) event;
 
-        /* Recieve message */
+        /* Receive message */
         if (message.getDestination()
                 .equals(inetAddress + ":" + listeningPort)) {
             RECEIVE_TRACKER.incrementAndGet();

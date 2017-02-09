@@ -48,14 +48,25 @@ public class ShortestPath {
         return vertex;
     }
 
-    public static List<Integer> printPath(int[] pred, int source, int edge) {
+    public static List<Integer> getShortestPath(int[] pred, int source, int destination) {
         final List<Integer> path = new ArrayList<>();
-        int vertex = edge;
+        int vertex = destination;
         while (vertex != source) {
             path.add(0, vertex);
             vertex = pred[vertex];
         }
         path.add(0, source);
+        return path;
+    }
+
+    public static List<String> getShortestPath(Graph graph, int[] pred, int source, int destination) {
+        final List<String> path = new ArrayList<>();
+        int vertex = destination;
+        while (vertex != source) {
+            path.add(graph.getMappedVertex(vertex) + "--" + graph.getEdgeWeight(vertex, pred[vertex]));
+            vertex = pred[vertex];
+        }
+        path.add(graph.getMappedVertex(source));
         return path;
     }
 }

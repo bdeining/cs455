@@ -14,12 +14,6 @@ import cs455.overlay.wireformats.RegisterRequest;
 public class ClientTester {
 
     @Test
-    public void testMessagingNode() {
-        MessagingNodeWrapper messagingNodeWrapper = new MessagingNodeWrapper("localhost", 50000);
-        messagingNodeWrapper.run();
-    }
-
-    @Test
     public void testClient() throws Exception {
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
              DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream)){

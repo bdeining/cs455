@@ -40,10 +40,10 @@ public class Graph {
         return adjacencyList;
     }
 
-    public int getWeight(int next, int v) {
+    public int getWeight(int next, int vertex) {
         List<Edge> edges = adjacencyList.get(next);
-        for(Edge edge : edges) {
-            if(edge.getVertex() == v) {
+        for (Edge edge : edges) {
+            if (edge.getVertex() == vertex) {
                 return edge.getWeight();
             }
         }
@@ -100,6 +100,16 @@ public class Graph {
 
         }
         return true;
+    }
+
+    public Integer getEdgeWeight(int source, int destination) {
+        List<Edge> edgeList = adjacencyList.get(source);
+        for (Edge edge : edgeList) {
+            if (edge.getVertex() == destination) {
+                return edge.getWeight();
+            }
+        }
+        return null;
     }
 
     public Integer getMappedVertex(String x) {
@@ -227,15 +237,34 @@ public class Graph {
         return messageNodeList;
     }
 
+    public String generateShortestPaths(String source) {
+        StringBuilder stringBuilder = new StringBuilder();
+        int sourceInt = getMappedVertex(source);
+
+        for (int i = 0; i < adjacencyList.size(); i++) {
+            if (sourceInt != i) {
+                List<String> stringList = getShortestPath(source, getMappedVertex(i));
+
+                ShortestPathElement shortestPathElement = ShortestPath.dijkstra(this, sourceInt);
+                shortestPathElement.getPred();
+                shortestPathElement.getDist();
+
+            }
+        }
+
+        return stringBuilder.toString();
+
+    }
+
     public List<String> getShortestPath(String source, String destination) {
         int destinationInt = getMappedVertex(destination);
         int sourceInt = getMappedVertex(source);
         ShortestPathElement shortestPathElement = ShortestPath.dijkstra(this, sourceInt);
-        List<Integer> dest = ShortestPath.printPath(shortestPathElement.getPred(),
+        List<Integer> dest = ShortestPath.getShortestPath(shortestPathElement.getPred(),
                 sourceInt,
                 destinationInt);
         List<String> paths = new ArrayList<>();
-        for(Integer integer : dest) {
+        for (Integer integer : dest) {
             paths.add(getMappedVertex(integer));
         }
         return paths;
@@ -272,6 +301,23 @@ public class Graph {
             }
         }
         return linkWeights;
+    }
+
+    public String getShortestPathList() {
+        List<String> paths = new ArrayList<>();
+        for (int i = 0; i < getAdjacencyList().size(); i++) {
+            ShortestPathElement shortestPathElement = ShortestPath.dijkstra(this, i);
+            for (int c = 0; c < getAdjacencyList().size(); c++) {
+                if (i != c) {
+                    List<String> path = ShortestPath.getShortestPath(this,
+                            shortestPathElement.getPred(),
+                            i,
+                            c);
+                    paths.add(String.join("--", path));
+                }
+            }
+        }
+        return String.join("\n", paths);
     }
 
     public String generateLinkWeightBody() {
