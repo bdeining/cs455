@@ -1,10 +1,9 @@
 mvn compile assembly:single -Pregistry
 mvn compile assembly:single -PmessagingNode
 cd target/ ; java -jar registry-jar-with-dependencies.jar 50000 ; cd ..
-cd target/ ; java -jar messagingNode-jar-with-dependencies.jar "localhost" "50000" ; cd ..
+cd target/ ; java -jar messagingNode-jar-with-dependencies.jar "denver.cs.colostate.edu" "50000" ; cd ..
 
 TODO:
-
-Clean up
-Proper printing statements
+Makefile
+Test on remote machines
 Verification
