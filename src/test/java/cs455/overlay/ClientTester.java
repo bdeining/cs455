@@ -18,7 +18,7 @@ public class ClientTester {
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
              DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream)){
             Socket socket = new Socket("localhost", 50000);
-            TCPSender tcpSender = new TCPSender(socket);
+            TCPSender tcpSender = new TCPSender();
 
             dataOutputStream.writeInt(1);
             byte[] ip = "127.0.0.1".getBytes();
@@ -34,8 +34,7 @@ public class ClientTester {
             byte[] wrappedData = new RegisterRequest(data).getBytes();
 
 
-            tcpSender.sendData(wrappedData);
-            tcpSender.closeSocket();
+            tcpSender.sendData(wrappedData, socket);
         } catch (UnknownHostException e) {
             System.out.println("Unknown host: kq6py");
             System.exit(1);

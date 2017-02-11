@@ -126,13 +126,13 @@ public class GraphTest {
             System.out.println(i + " " + dist[i]);
         }
 
-        List<Integer> integers = ShortestPath.getShortestPath(pred, 0, 1);
+        List<Integer> integers = ShortestPath.getShortestPathIntegerList(pred, 0, 1);
         System.out.println(integers);
-        integers = ShortestPath.getShortestPath(pred, 0, 2);
+        integers = ShortestPath.getShortestPathIntegerList(pred, 0, 2);
         System.out.println(integers);
-        integers = ShortestPath.getShortestPath(pred, 0, 3);
+        integers = ShortestPath.getShortestPathIntegerList(pred, 0, 3);
         System.out.println(integers);
-        integers = ShortestPath.getShortestPath(pred, 0, 4);
+        integers = ShortestPath.getShortestPathIntegerList(pred, 0, 4);
         System.out.println(integers);
 
     }
@@ -147,7 +147,7 @@ public class GraphTest {
             ShortestPathElement shortestPathElement = ShortestPath.dijkstra(graph, i);
             for (int c = 0; c < graph.getAdjacencyList().size(); c++) {
                 if (i != c) {
-                    List<String> path = ShortestPath.getShortestPath(graph,
+                    List<String> path = ShortestPath.getShortestPathStringList(graph,
                             shortestPathElement.getPred(),
                             i,
                             c);

@@ -165,6 +165,11 @@ public class Graph {
         }
     }
 
+    /**
+     * Check if the given vertex has reached the connection limit
+     * @param vertex
+     * @return true if the vertex exceeds the connectionLimit
+     */
     private boolean isConnectionLimitReached(int vertex) {
         if (adjacencyList.get(vertex)
                 .size() < numberOfConnections) {
@@ -173,11 +178,22 @@ public class Graph {
         return true;
     }
 
+    /**
+     * Gets a random host from the graph
+     *
+     * @param source - a random host in the graph
+     * @return
+     */
     public String getRandomHost(String source) {
         int sourceInt = getMappedVertex(source);
         return getMappedVertex(getRandomVertex(sourceInt).getVertex());
     }
 
+    /**
+     * Gets a random vertex in the graph that is not the given vertex.
+     * @param vertex - a vertex
+     * @return a random vertex
+     */
     private Edge getRandomVertex(int vertex) {
         int min = 0;
         int max = adjacencyList.size() - 1;
@@ -189,6 +205,10 @@ public class Graph {
         return new Edge(getRandomEdgeWeight(), result);
     }
 
+    /**
+     * Generates a random edge weight 1 - 10
+     * @return
+     */
     private int getRandomEdgeWeight() {
         return random.nextInt(10) + 1;
     }
@@ -226,6 +246,11 @@ public class Graph {
         return true;
     }
 
+    /**
+     * Generates the list of nodes a specific source should connect to
+     * @param source - the source node
+     * @return a list of nodes to connect to
+     */
     public List<String> generateMessageNodeList(String source) {
         List<String> messageNodeList = new ArrayList<>();
         List<String> stringList = generateMessageNodeFullList();
@@ -237,30 +262,17 @@ public class Graph {
         return messageNodeList;
     }
 
-    public String generateShortestPaths(String source) {
-        StringBuilder stringBuilder = new StringBuilder();
-        int sourceInt = getMappedVertex(source);
-
-        for (int i = 0; i < adjacencyList.size(); i++) {
-            if (sourceInt != i) {
-                List<String> stringList = getShortestPath(source, getMappedVertex(i));
-
-                ShortestPathElement shortestPathElement = ShortestPath.dijkstra(this, sourceInt);
-                shortestPathElement.getPred();
-                shortestPathElement.getDist();
-
-            }
-        }
-
-        return stringBuilder.toString();
-
-    }
-
+    /**
+     * Generates the shortest path routes from source to destination
+     * @param source - the source vertex
+     * @param destination - the destination vertex
+     * @return - a list of nodes to travel the shortest distance btw source and destination
+     */
     public List<String> getShortestPath(String source, String destination) {
         int destinationInt = getMappedVertex(destination);
         int sourceInt = getMappedVertex(source);
         ShortestPathElement shortestPathElement = ShortestPath.dijkstra(this, sourceInt);
-        List<Integer> dest = ShortestPath.getShortestPath(shortestPathElement.getPred(),
+        List<Integer> dest = ShortestPath.getShortestPathIntegerList(shortestPathElement.getPred(),
                 sourceInt,
                 destinationInt);
         List<String> paths = new ArrayList<>();
@@ -270,6 +282,12 @@ public class Graph {
         return paths;
     }
 
+    /**
+     * Generates the full list of nodes to establish connections.  This method ensures that if A is
+     * to connect to B, B will not connect to A
+     *
+     * @return a connection instructions
+     */
     public List<String> generateMessageNodeFullList() {
         List<String> stringList = new ArrayList<>();
         for (int i = 0; i < adjacencyList.size(); i++) {
@@ -287,6 +305,10 @@ public class Graph {
         return stringList;
     }
 
+    /**
+     * Generates the full list of link weights in the graph (edges).
+     * @return
+     */
     public List<String> generateLinkWeightList() {
         List<String> linkWeights = new ArrayList<>();
         for (int i = 0; i < adjacencyList.size(); i++) {
@@ -303,13 +325,17 @@ public class Graph {
         return linkWeights;
     }
 
+    /**
+     * Generates all shortest paths in the graph for all vertices
+     * @return
+     */
     public String getShortestPathList() {
         List<String> paths = new ArrayList<>();
         for (int i = 0; i < getAdjacencyList().size(); i++) {
             ShortestPathElement shortestPathElement = ShortestPath.dijkstra(this, i);
             for (int c = 0; c < getAdjacencyList().size(); c++) {
                 if (i != c) {
-                    List<String> path = ShortestPath.getShortestPath(this,
+                    List<String> path = ShortestPath.getShortestPathStringList(this,
                             shortestPathElement.getPred(),
                             i,
                             c);
@@ -320,6 +346,10 @@ public class Graph {
         return String.join("\n", paths);
     }
 
+    /**
+     * Generates the body of a link weight message based on the graph.  This is only used for testing
+     * @return
+     */
     public String generateLinkWeightBody() {
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < adjacencyList.size(); i++) {

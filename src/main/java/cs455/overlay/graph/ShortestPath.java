@@ -48,7 +48,7 @@ public class ShortestPath {
         return vertex;
     }
 
-    public static List<Integer> getShortestPath(int[] pred, int source, int destination) {
+    public static List<Integer> getShortestPathIntegerList(int[] pred, int source, int destination) {
         final List<Integer> path = new ArrayList<>();
         int vertex = destination;
         while (vertex != source) {
@@ -59,7 +59,8 @@ public class ShortestPath {
         return path;
     }
 
-    public static List<String> getShortestPath(Graph graph, int[] pred, int source, int destination) {
+    public static List<String> getShortestPathStringList(Graph graph, int[] pred, int source,
+            int destination) {
         final List<String> path = new ArrayList<>();
         int vertex = destination;
         while (vertex != source) {

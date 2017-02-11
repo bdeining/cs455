@@ -61,7 +61,7 @@ public class TCPReceiverThread implements Runnable {
                 case 1:
                     if (node instanceof Registry) {
                         RegisterRequest registerRequest = (RegisterRequest) event;
-                        ((Registry) node).registerNode(socket,
+                        ((Registry) node).registerMessagingNode(socket,
                                 registerRequest.getIpAddress(),
                                 registerRequest.getPort());
                     }
@@ -150,7 +150,7 @@ public class TCPReceiverThread implements Runnable {
         return value;
     }
 
-    public long generateChecksum(byte[] dataToSend) {
+    private long generateChecksum(byte[] dataToSend) {
         CRC32 crc32 = new CRC32();
         crc32.update(dataToSend);
         return crc32.getValue();

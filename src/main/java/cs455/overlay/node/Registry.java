@@ -136,7 +136,16 @@ public class Registry implements Node {
         return portnum;
     }
 
-    public void registerNode(Socket socket, String eventIp, int port) {
+    /**
+     * Registers the messaging node with the registry.  This method first checks that the origin
+     * and the IP obtained from the Event match.  If the node is already registered, the method responds
+     * to the MessagingNode with an error.
+     *
+     * @param socket - the socket the register request originated from
+     * @param eventIp - the ip from the register request
+     * @param port - the listening port of the messaging node
+     */
+    public void registerMessagingNode(Socket socket, String eventIp, int port) {
         String ip = socket.getInetAddress().getHostAddress();
         Event event;
         byte statusCode = 0;
@@ -174,6 +183,15 @@ public class Registry implements Node {
         }
     }
 
+    /**
+     * De-registers the node in the registry.  This method first checks that the origin
+     * and the IP obtained from the Event match.  If the node is not registered, the method responds
+     * to the MessagingNode with an error.
+     *
+     * @param socket - the socket the deregister request originated from
+     * @param eventIp - the ip from the deregister request
+     * @param port - the listening port of the messaging node
+     */
     public void deRegisterNode(Socket socket, String eventIp, int port) {
         Event event;
         String ip = socket.getInetAddress().getHostAddress() + ":" + port;
@@ -209,13 +227,6 @@ public class Registry implements Node {
      **/
     public void listMessagingNodes() {
         registeredNodes.keySet().forEach(System.out::println);
-
-/*        for (Map.Entry<String, Connection> entry : registeredNodes.entrySet()) {
-            Socket socket = entry.getValue()
-                    .getSocket();
-            System.out.println(socket.getInetAddress()
-                    .getHostAddress() + ":" + socket.getPort());
-        }*/
     }
 
     /**
@@ -310,16 +321,23 @@ public class Registry implements Node {
     /*                              Message Handling                                       */
     /* ----------------------------------------------------------------------------------- */
 
+    /**
+     * Handles task complete messages and stores them in a map.  If the last taskComplete message
+     * message for the overlay is received, sleep for a dynamic amount of time and send a PullTrafficSummary
+     * to all Messaging Nodes.
+     * @param event - the task complete message
+     */
     public synchronized void taskComplete(TaskComplete event) {
         String host = event.getIp() + ":" + event.getPort();
         taskCompleteNodes.put(host, true);
         if (allNodesComplete(taskCompleteNodes)) {
             try {
+                /* Dynamically increase sleep time for larger rounds */
                 int sleepTime = 15000;
                 if (rounds > 3000) {
                     sleepTime += rounds;
                 }
-                System.out.println("Waiting for " + sleepTime + "seconds.");
+                System.out.println("All nodes reported task complete.  Waiting for " + sleepTime%1000 + " seconds.");
                 Thread.sleep(sleepTime);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -328,7 +346,15 @@ public class Registry implements Node {
         }
     }
 
+    /**
+     * Handles trafficSummary messages.  If this message is the last message for a node in the overlay,
+     * generate the entire traffic summary and print it.  Reset the totals as well as the traffic summary
+     * map.
+     *
+     * @param trafficSummary - the trafficSummary event
+     */
     public synchronized void trafficSummary(TrafficSummary trafficSummary) {
+        String outputFormat = "%21s%20s%20s%20s%20s%20s";
         String source = trafficSummary.getIp() + ":" + trafficSummary.getPort();
         TOTAL_TRAFFIC_SUMMARY.incrementAndGet();
         SENT_SUM.addAndGet(trafficSummary.getMessagesSent());
@@ -336,7 +362,7 @@ public class Registry implements Node {
         SENT_SUMMATION_SUM.addAndGet(trafficSummary.getMessagesSentSummation());
         RECIEVED_SUMMATION_SUM.addAndGet(trafficSummary.getMessagesReceivedSummation());
 
-        String output = String.format("%10s%20s%20s%20s%20s%20s",
+        String output = String.format(outputFormat,
                 source,
                 trafficSummary.getMessagesSent(),
                 trafficSummary.getMessagesReceived(),
@@ -347,7 +373,7 @@ public class Registry implements Node {
         this.trafficSummary.put(source, output);
 
         if (allNodesComplete(this.trafficSummary) && TOTAL_TRAFFIC_SUMMARY.get() == this.trafficSummary.size()) {
-            System.out.println(String.format("%10s%20s%20s%20s%20s%20s",
+            System.out.println(String.format(outputFormat,
                     "",
                     "Sent",
                     "Received",
@@ -356,7 +382,7 @@ public class Registry implements Node {
                     "Relayed"));
             this.trafficSummary.values().forEach(System.out::println);
 
-            System.out.println(String.format("%10s%20s%20s%20s%20s%20s",
+            System.out.println(String.format(outputFormat,
                     "Sum",
                     SENT_SUM.get(),
                     RECIEVED_SUM.get(),
@@ -373,6 +399,9 @@ public class Registry implements Node {
         }
     }
 
+    /**
+     * Sends PullTrafficSummary messages to all nodes in the overlay.
+     */
     private void sendPullTrafficSummary() {
         for (Map.Entry<String, Connection> stringConnectionMap : registeredNodes.entrySet()) {
             Event event = new PullTrafficSummary();
@@ -382,6 +411,13 @@ public class Registry implements Node {
         }
     }
 
+    /**
+     * Determines if all nodes have entries in a given map.  This is used to determine if all nodes
+     * have responded with TaskComplete or TrafficSummary requests.
+     *
+     * @param concurrentHashMap - the map to check
+     * @return true if all nodes have entries
+     */
     private synchronized boolean allNodesComplete(ConcurrentHashMap concurrentHashMap) {
         for (Map.Entry<String, Connection> stringConnectionMap : registeredNodes.entrySet()) {
             if (!concurrentHashMap.containsKey(stringConnectionMap.getKey())) {
@@ -392,17 +428,28 @@ public class Registry implements Node {
         return true;
     }
 
+    /**
+     * Sends a message to a socket without catching exceptions.
+     * @param socket - the socket to send the event
+     * @param event - the event
+     * @throws IOException on communication failures
+     */
     private static void sendEventToIpWithoutCatch(Socket socket, Event event) throws IOException {
-        TCPSender tcpSender = new TCPSender(socket);
-        tcpSender.sendData(event.getBytes());
+        TCPSender tcpSender = new TCPSender();
+        tcpSender.sendData(event.getBytes(), socket);
     }
 
+    /**
+     * Sends a message to a socket.
+     * @param socket - the socket to send the event
+     * @param event - the event
+     */
     private static void sendEventToIp(Socket socket, Event event) {
         try {
-            TCPSender tcpSender = new TCPSender(socket);
-            tcpSender.sendData(event.getBytes());
+            TCPSender tcpSender = new TCPSender();
+            tcpSender.sendData(event.getBytes(), socket);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Unable to communicate with socket : " + socket.getInetAddress().getHostAddress());
         }
     }
 }

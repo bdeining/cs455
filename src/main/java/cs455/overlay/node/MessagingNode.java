@@ -18,7 +18,6 @@ import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.EventFactory;
 import cs455.overlay.wireformats.LinkWeights;
-import cs455.overlay.wireformats.Message;
 
 public class MessagingNode implements Node {
     private static final String PRINT_SHORTEST_PATH_COMMAND = "print-shortest-path";
@@ -37,7 +36,9 @@ public class MessagingNode implements Node {
 
     private static final AtomicLong RECEIVE_SUMMATION = new AtomicLong(0);
 
-    private Socket registrySocket;
+    private TCPSender tcpSender;
+
+//    private Socket registrySocket;
 
     private static String registryHost;
 
@@ -47,7 +48,7 @@ public class MessagingNode implements Node {
 
     private int listeningPort;
 
-    private TCPSender tcpSender;
+    private Socket registrySocket;
 
     private String inetAddress;
 
@@ -98,24 +99,19 @@ public class MessagingNode implements Node {
         listeningPort = tcpServerThread.getPort();
 
         try {
+            tcpSender = new TCPSender();
             registrySocket = new Socket(registryHost, registryPort);
             TCPReceiverThread tcpReceiverThread = new TCPReceiverThread(this, registrySocket);
             new Thread(tcpReceiverThread).start();
-            tcpSender = new TCPSender(registrySocket);
 
             byte[] wrappedData = EventFactory.createRegisterRequest(inetAddress, listeningPort)
                     .getBytes();
 
-            tcpSender.sendData(wrappedData);
+            tcpSender.sendData(wrappedData, registrySocket);
 
         } catch (IOException e) {
             System.out.println("Could not communicate with registry.");
         }
-    }
-
-    public void generateMapFromLinkWeights(LinkWeights event) {
-        graph = new Graph(event.getLinks());
-        System.out.println("Link weights are received and processed. Ready to send messages.");
     }
 
     /**
@@ -139,20 +135,43 @@ public class MessagingNode implements Node {
     public void exitOverlay() {
         Event event = EventFactory.createDeregisterRequest(inetAddress, listeningPort);
         try {
-            tcpSender.sendData(event.getBytes());
+            tcpSender.sendData(event.getBytes(), registrySocket);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    public void generateMapFromLinkWeights(LinkWeights event) {
+        graph = new Graph(event.getLinks());
+        System.out.println("Link weights are received and processed. Ready to send messages.");
+    }
+
+    /**
+     * Exits the program when a DeregisterResponse is received from the registry
+     */
     public void exit() {
         System.exit(0);
     }
 
+    /**
+     * When a socket is established from a calling messaging node, add the socket to
+     * the connections map
+     *
+     * @param hostName - the hostname of the messaging node establishing the connection
+     * @param socket - the socket between the remote messaging node and this messaging node
+     */
     public void addSocket(String hostName, Socket socket) {
         connections.put(hostName, socket);
     }
 
+    /**
+     * Sets up the messaging node links from a MessagingNodesList Event.  This will establish
+     * connections with each node listed in the nodes list.  If there are no connections to establish
+     * the method does nothing.
+     *
+     * @param nodes - the list of nodes to connect to
+     * @param numberOfPeers - the number of peers in the nodes list
+     */
     public void setupMessagingNodeLinks(List<String> nodes, int numberOfPeers) {
         if (numberOfPeers == 0) {
             System.out.println(
@@ -192,6 +211,15 @@ public class MessagingNode implements Node {
                 "All connections are established. Number of connections: " + numberOfPeers);
     }
 
+    /**
+     * Processes the received message from the round.  If the destination is this messaging node,
+     * increment the counters appropriately, otherwise use the graph to relay the message along the
+     * shortest path.
+     *
+     * @param event - the message received
+     * @param destination - the destination of the message
+     * @param payload - the payload of the message
+     */
     public void processMessage(Event event, String destination, int payload ) {
         /* Receive message */
         if (destination.equals(inetAddress + ":" + listeningPort)) {
@@ -202,16 +230,28 @@ public class MessagingNode implements Node {
 
         /* Otherwise Relay Message*/
         RELAY_TRACKER.incrementAndGet();
-        sendTo(event, destination);
+        sendEventToDesination(event, destination);
     }
 
-    private void sendTo(Event event, String destination) {
+    /**
+     * Sends the event to the destination along the shortest path.
+     *
+     * @param event - the event to send
+     * @param destination - the destination of the event, used for SSP
+     */
+    private void sendEventToDesination(Event event, String destination) {
         List<String> paths = graph.getShortestPath(inetAddress + ":" + listeningPort, destination);
         String sendDest = paths.get(1);
         Socket socket = connections.get(sendDest);
         sendEventToIp(socket, event);
     }
 
+    /**
+     * Sends messages based on the number of rounds.  Each round, 5 messages are sent to a random
+     * node in the overlay
+     *
+     * @param numberOfRounds - the number of rounds to send messages
+     */
     public void startRounds(int numberOfRounds) {
         if (graph == null) {
             System.out.println("Unable to start round, overlay may not have been set up.");
@@ -226,7 +266,7 @@ public class MessagingNode implements Node {
                 Event event = EventFactory.createMessage(randomInt, source, randomDest);
                 SEND_TRACKER.incrementAndGet();
                 SEND_SUMMATION.addAndGet(randomInt);
-                sendTo(event, randomDest);
+                sendEventToDesination(event, randomDest);
             }
         }
 
@@ -234,6 +274,11 @@ public class MessagingNode implements Node {
         sendEventToIp(registrySocket, event);
     }
 
+    /**
+     * Generates a TrafficSummary message and sends it to the registry.  This happens at the end of
+     * all rounds.  All counters are then reset.
+     *
+     */
     public void pullTrafficSummary() {
         Event event = EventFactory.createTrafficSummary(inetAddress,
                 listeningPort,
@@ -256,10 +301,16 @@ public class MessagingNode implements Node {
         return random.nextInt();
     }
 
-    private synchronized static void sendEventToIp(Socket socket, Event event) {
+    /**
+     * Sends the event to the socket.
+     *
+     * @param socket - the socket to send the event to
+     * @param event - the event to send
+     */
+    private void sendEventToIp(Socket socket, Event event) {
+        System.out.println("Sending event to  : " + socket.toString());
         try {
-            TCPSender tcpSender = new TCPSender(socket);
-            tcpSender.sendData(event.getBytes());
+            tcpSender.sendData(event.getBytes(), socket);
         } catch (IOException e) {
             e.printStackTrace();
         }
