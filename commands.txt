@@ -1,7 +1,10 @@
 mvn compile assembly:single -Pregistry
 mvn compile assembly:single -PmessagingNode
 cd target/ ; java -jar registry-jar-with-dependencies.jar 50000 ; cd ..
-cd target/ ; java -jar messagingNode-jar-with-dependencies.jar "denver.cs.colostate.edu" "50000" ; cd ..
+cd target/ ; java -jar messagingNode-jar-with-dependencies.jar "localhost" "50000" ; cd ..
+
+java cs455.overlay.node.MessagingNode "localhost" "50000"
+java cs455.overlay.node.Registry "50000"
 
 TODO:
 Makefile

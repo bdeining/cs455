@@ -3,7 +3,6 @@ all: compile
 
 clean:
 	@echo '[INFO] Cleaning up...'
-	@rm -rf target
 	@rm -rf cs455
 
 compile:

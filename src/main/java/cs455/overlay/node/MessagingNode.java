@@ -192,25 +192,20 @@ public class MessagingNode implements Node {
                 "All connections are established. Number of connections: " + numberOfPeers);
     }
 
-    public synchronized void processMessage(Event event) {
-        Message message = (Message) event;
-
+    public void processMessage(Event event, String destination, int payload ) {
         /* Receive message */
-        if (message.getDestination()
-                .equals(inetAddress + ":" + listeningPort)) {
+        if (destination.equals(inetAddress + ":" + listeningPort)) {
             RECEIVE_TRACKER.incrementAndGet();
-            RECEIVE_SUMMATION.addAndGet(message.getPayload());
+            RECEIVE_SUMMATION.addAndGet(payload);
             return;
         }
 
         /* Otherwise Relay Message*/
         RELAY_TRACKER.incrementAndGet();
-        sendTo(event);
+        sendTo(event, destination);
     }
 
-    private synchronized void sendTo(Event event) {
-        Message message = (Message) event;
-        String destination = message.getDestination();
+    private void sendTo(Event event, String destination) {
         List<String> paths = graph.getShortestPath(inetAddress + ":" + listeningPort, destination);
         String sendDest = paths.get(1);
         Socket socket = connections.get(sendDest);
@@ -231,7 +226,7 @@ public class MessagingNode implements Node {
                 Event event = EventFactory.createMessage(randomInt, source, randomDest);
                 SEND_TRACKER.incrementAndGet();
                 SEND_SUMMATION.addAndGet(randomInt);
-                sendTo(event);
+                sendTo(event, randomDest);
             }
         }
 

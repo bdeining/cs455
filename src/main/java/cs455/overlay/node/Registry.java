@@ -52,6 +52,8 @@ public class Registry implements Node {
 
     private static String inetAddress;
 
+    private int rounds;
+
     private Graph graph;
 
     private ConcurrentHashMap<String, String> trafficSummary;
@@ -294,6 +296,7 @@ public class Registry implements Node {
      * @param numberOfRounds
      */
     public void start(int numberOfRounds) {
+        this.rounds = numberOfRounds;
         taskCompleteNodes = new ConcurrentHashMap<>();
         trafficSummary = new ConcurrentHashMap<>();
         Event event = EventFactory.createTaskInitiate(numberOfRounds);
@@ -312,7 +315,12 @@ public class Registry implements Node {
         taskCompleteNodes.put(host, true);
         if (allNodesComplete(taskCompleteNodes)) {
             try {
-                Thread.sleep(15000);
+                int sleepTime = 15000;
+                if (rounds > 3000) {
+                    sleepTime += rounds;
+                }
+                System.out.println("Waiting for " + sleepTime + "seconds.");
+                Thread.sleep(sleepTime);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

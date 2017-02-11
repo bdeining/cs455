@@ -14,6 +14,7 @@ import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.EventFactory;
 import cs455.overlay.wireformats.Identity;
 import cs455.overlay.wireformats.LinkWeights;
+import cs455.overlay.wireformats.Message;
 import cs455.overlay.wireformats.MessagingNodesList;
 import cs455.overlay.wireformats.RegisterRequest;
 import cs455.overlay.wireformats.TaskComplete;
@@ -89,7 +90,9 @@ public class TCPReceiverThread implements Runnable {
                     break;
                 case 6:
                     if (node instanceof MessagingNode) {
-                        ((MessagingNode) node).processMessage(event);
+                        String destination = ((Message)event).getDestination();
+                        int payload = ((Message)event).getPayload();
+                        ((MessagingNode) node).processMessage(event, destination, payload);
                     }
                     break;
                 case 7:
