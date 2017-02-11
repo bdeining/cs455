@@ -100,6 +100,7 @@ public class MessagingNode implements Node {
 
         try {
             tcpSender = new TCPSender();
+            new Thread(tcpSender).start();
             registrySocket = new Socket(registryHost, registryPort);
             TCPReceiverThread tcpReceiverThread = new TCPReceiverThread(this, registrySocket);
             new Thread(tcpReceiverThread).start();
@@ -124,7 +125,7 @@ public class MessagingNode implements Node {
             System.out.println("Could not print shortest paths, graph may not have been initialized.");
             return;
         }
-        System.out.println(graph.getShortestPathList());
+        System.out.println(graph.getShortestPathList(inetAddress  + ":" + listeningPort));
     }
 
     /**
@@ -308,7 +309,6 @@ public class MessagingNode implements Node {
      * @param event - the event to send
      */
     private void sendEventToIp(Socket socket, Event event) {
-        System.out.println("Sending event to  : " + socket.toString());
         try {
             tcpSender.sendData(event.getBytes(), socket);
         } catch (IOException e) {

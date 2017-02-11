@@ -121,8 +121,7 @@ public class GraphTest {
         int[] dist = shortestPathElement.getDist();
         int[] pred = shortestPathElement.getPred();
 
-
-        for(int i=0; i<dist.length; i++) {
+        for (int i = 0; i < dist.length; i++) {
             System.out.println(i + " " + dist[i]);
         }
 
@@ -142,17 +141,17 @@ public class GraphTest {
         graph.generateConnectedGraph();
         System.out.println(graph.generateLinkWeightBody());
 
+        int i = 0;
 
-        for(int i = 0; i<graph.getAdjacencyList().size(); i++) {
-            ShortestPathElement shortestPathElement = ShortestPath.dijkstra(graph, i);
-            for (int c = 0; c < graph.getAdjacencyList().size(); c++) {
-                if (i != c) {
-                    List<String> path = ShortestPath.getShortestPathStringList(graph,
-                            shortestPathElement.getPred(),
-                            i,
-                            c);
-                    System.out.println(String.join("--", path));
-                }
+        ShortestPathElement shortestPathElement = ShortestPath.dijkstra(graph, i);
+        for (int c = 0; c < graph.getAdjacencyList()
+                .size(); c++) {
+            if (i != c) {
+                List<String> path = ShortestPath.getShortestPathStringList(graph,
+                        shortestPathElement.getPred(),
+                        i,
+                        c);
+                System.out.println(String.join("--", path));
             }
         }
     }

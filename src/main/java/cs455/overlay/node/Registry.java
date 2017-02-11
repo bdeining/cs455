@@ -44,6 +44,8 @@ public class Registry implements Node {
 
     private static TCPServerThread tcpServerThread;
 
+    private static TCPSender tcpSender;
+
     private static ConcurrentHashMap<String, Boolean> taskCompleteNodes;
 
     private static ConcurrentHashMap<String, Connection> registeredNodes;
@@ -114,6 +116,9 @@ public class Registry implements Node {
     }
 
     public Registry() {
+        tcpSender = new TCPSender();
+        new Thread(tcpSender).start();
+
         try {
             inetAddress = InetAddress.getLocalHost()
                     .getHostAddress();
@@ -337,7 +342,7 @@ public class Registry implements Node {
                 if (rounds > 3000) {
                     sleepTime += rounds;
                 }
-                System.out.println("All nodes reported task complete.  Waiting for " + sleepTime%1000 + " seconds.");
+                System.out.println("All nodes reported task complete.  Waiting for " + (sleepTime/1000) + " seconds.");
                 Thread.sleep(sleepTime);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -435,7 +440,6 @@ public class Registry implements Node {
      * @throws IOException on communication failures
      */
     private static void sendEventToIpWithoutCatch(Socket socket, Event event) throws IOException {
-        TCPSender tcpSender = new TCPSender();
         tcpSender.sendData(event.getBytes(), socket);
     }
 
@@ -446,7 +450,6 @@ public class Registry implements Node {
      */
     private static void sendEventToIp(Socket socket, Event event) {
         try {
-            TCPSender tcpSender = new TCPSender();
             tcpSender.sendData(event.getBytes(), socket);
         } catch (IOException e) {
             System.out.println("Unable to communicate with socket : " + socket.getInetAddress().getHostAddress());

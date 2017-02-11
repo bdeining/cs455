@@ -7,6 +7,4 @@ java cs455.overlay.node.MessagingNode "localhost" "50000"
 java cs455.overlay.node.Registry "50000"
 
 TODO:
-Makefile
-Test on remote machines
-Verification
+test remote with 20000 messages and 10 nodes

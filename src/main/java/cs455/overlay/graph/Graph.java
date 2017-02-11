@@ -167,6 +167,7 @@ public class Graph {
 
     /**
      * Check if the given vertex has reached the connection limit
+     *
      * @param vertex
      * @return true if the vertex exceeds the connectionLimit
      */
@@ -191,6 +192,7 @@ public class Graph {
 
     /**
      * Gets a random vertex in the graph that is not the given vertex.
+     *
      * @param vertex - a vertex
      * @return a random vertex
      */
@@ -207,6 +209,7 @@ public class Graph {
 
     /**
      * Generates a random edge weight 1 - 10
+     *
      * @return
      */
     private int getRandomEdgeWeight() {
@@ -248,6 +251,7 @@ public class Graph {
 
     /**
      * Generates the list of nodes a specific source should connect to
+     *
      * @param source - the source node
      * @return a list of nodes to connect to
      */
@@ -264,7 +268,8 @@ public class Graph {
 
     /**
      * Generates the shortest path routes from source to destination
-     * @param source - the source vertex
+     *
+     * @param source      - the source vertex
      * @param destination - the destination vertex
      * @return - a list of nodes to travel the shortest distance btw source and destination
      */
@@ -307,6 +312,7 @@ public class Graph {
 
     /**
      * Generates the full list of link weights in the graph (edges).
+     *
      * @return
      */
     public List<String> generateLinkWeightList() {
@@ -327,27 +333,30 @@ public class Graph {
 
     /**
      * Generates all shortest paths in the graph for all vertices
+     *
      * @return
      */
-    public String getShortestPathList() {
+    public String getShortestPathList(String source) {
+        int sourceInt = getMappedVertex(source);
+
         List<String> paths = new ArrayList<>();
-        for (int i = 0; i < getAdjacencyList().size(); i++) {
-            ShortestPathElement shortestPathElement = ShortestPath.dijkstra(this, i);
-            for (int c = 0; c < getAdjacencyList().size(); c++) {
-                if (i != c) {
-                    List<String> path = ShortestPath.getShortestPathStringList(this,
-                            shortestPathElement.getPred(),
-                            i,
-                            c);
-                    paths.add(String.join("--", path));
-                }
+        ShortestPathElement shortestPathElement = ShortestPath.dijkstra(this, sourceInt);
+        for (int c = 0; c < getAdjacencyList().size(); c++) {
+            if (sourceInt != c) {
+                List<String> path = ShortestPath.getShortestPathStringList(this,
+                        shortestPathElement.getPred(),
+                        sourceInt,
+                        c);
+                paths.add(String.join("--", path));
             }
         }
+
         return String.join("\n", paths);
     }
 
     /**
      * Generates the body of a link weight message based on the graph.  This is only used for testing
+     *
      * @return
      */
     public String generateLinkWeightBody() {
