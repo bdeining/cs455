@@ -257,8 +257,9 @@ public class MessagingNode implements Node {
      * @param numberOfRounds - the number of rounds to send messages
      */
     public void startRounds(int numberOfRounds) {
-        if (graph == null) {
+        if (graph == null || !graph.isConnected()) {
             System.out.println("Unable to start round, overlay may not have been set up.");
+            return;
         }
 
         String source = inetAddress + ":" + listeningPort;

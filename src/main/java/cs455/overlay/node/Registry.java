@@ -295,6 +295,12 @@ public class Registry implements Node {
      */
     public void sendOverlayLinkWeights() {
         if (graph == null) {
+            System.out.println("Unable to send overlay link weights.  Overlay may not have been set up");
+            return;
+        }
+
+        if (registeredNodes.size() == 0) {
+            System.out.println("Unable to send overlay link weights.  No registered Messaging Nodes.");
             return;
         }
 
