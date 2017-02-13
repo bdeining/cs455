@@ -38,8 +38,6 @@ public class MessagingNode implements Node {
 
     private TCPSender tcpSender;
 
-//    private Socket registrySocket;
-
     private static String registryHost;
 
     private Graph graph;
@@ -115,6 +113,10 @@ public class MessagingNode implements Node {
         }
     }
 
+    public void printRegisterResponse(String additionalInfo) {
+        System.out.println(additionalInfo);
+    }
+
     /**
      * This should print the shortest paths that have been computed to all other the messaging nodes
      * within the system. The listing should also indicate weights associated with the links.
@@ -122,10 +124,11 @@ public class MessagingNode implements Node {
      */
     public void printShortestPath() {
         if (graph == null) {
-            System.out.println("Could not print shortest paths, graph may not have been initialized.");
+            System.out.println(
+                    "Could not print shortest paths, graph may not have been initialized.");
             return;
         }
-        System.out.println(graph.getShortestPathList(inetAddress  + ":" + listeningPort));
+        System.out.println(graph.getShortestPathList(inetAddress + ":" + listeningPort));
     }
 
     /**
@@ -159,7 +162,7 @@ public class MessagingNode implements Node {
      * the connections map
      *
      * @param hostName - the hostname of the messaging node establishing the connection
-     * @param socket - the socket between the remote messaging node and this messaging node
+     * @param socket   - the socket between the remote messaging node and this messaging node
      */
     public void addSocket(String hostName, Socket socket) {
         connections.put(hostName, socket);
@@ -170,7 +173,7 @@ public class MessagingNode implements Node {
      * connections with each node listed in the nodes list.  If there are no connections to establish
      * the method does nothing.
      *
-     * @param nodes - the list of nodes to connect to
+     * @param nodes         - the list of nodes to connect to
      * @param numberOfPeers - the number of peers in the nodes list
      */
     public void setupMessagingNodeLinks(List<String> nodes, int numberOfPeers) {
@@ -217,11 +220,11 @@ public class MessagingNode implements Node {
      * increment the counters appropriately, otherwise use the graph to relay the message along the
      * shortest path.
      *
-     * @param event - the message received
+     * @param event       - the message received
      * @param destination - the destination of the message
-     * @param payload - the payload of the message
+     * @param payload     - the payload of the message
      */
-    public void processMessage(Event event, String destination, int payload ) {
+    public void processMessage(Event event, String destination, int payload) {
         /* Receive message */
         if (destination.equals(inetAddress + ":" + listeningPort)) {
             RECEIVE_TRACKER.incrementAndGet();
@@ -237,7 +240,7 @@ public class MessagingNode implements Node {
     /**
      * Sends the event to the destination along the shortest path.
      *
-     * @param event - the event to send
+     * @param event       - the event to send
      * @param destination - the destination of the event, used for SSP
      */
     private void sendEventToDesination(Event event, String destination) {
@@ -262,7 +265,7 @@ public class MessagingNode implements Node {
 
         for (int i = 0; i < numberOfRounds; i++) {
             String randomDest = graph.getRandomHost(inetAddress + ":" + listeningPort);
-            for (int c=0; c < 5; c++) {
+            for (int c = 0; c < 5; c++) {
                 int randomInt = getRandomInt();
                 Event event = EventFactory.createMessage(randomInt, source, randomDest);
                 SEND_TRACKER.incrementAndGet();
@@ -278,7 +281,6 @@ public class MessagingNode implements Node {
     /**
      * Generates a TrafficSummary message and sends it to the registry.  This happens at the end of
      * all rounds.  All counters are then reset.
-     *
      */
     public void pullTrafficSummary() {
         Event event = EventFactory.createTrafficSummary(inetAddress,
@@ -306,7 +308,7 @@ public class MessagingNode implements Node {
      * Sends the event to the socket.
      *
      * @param socket - the socket to send the event to
-     * @param event - the event to send
+     * @param event  - the event to send
      */
     private void sendEventToIp(Socket socket, Event event) {
         try {

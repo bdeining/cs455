@@ -69,12 +69,6 @@ public class Message implements Event {
         return type;
     }
 
-    public void printDetails() {
-        System.out.println(payload);
-        System.out.println(source);
-        System.out.println(destination);
-    }
-
     public String getSource() {
         return source;
     }

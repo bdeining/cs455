@@ -25,7 +25,8 @@ public class ShortestPath {
             final List<Edge> edges = graph.getAdjacencyList()
                     .get(next);
             for (int j = 0; j < edges.size(); j++) {
-                final int vertex = edges.get(j).getVertex();
+                final int vertex = edges.get(j)
+                        .getVertex();
                 final int distance = dist[next] + graph.getWeight(next, vertex);
                 if (dist[vertex] > distance) {
                     dist[vertex] = distance;
@@ -48,7 +49,8 @@ public class ShortestPath {
         return vertex;
     }
 
-    public static List<Integer> getShortestPathIntegerList(int[] pred, int source, int destination) {
+    public static List<Integer> getShortestPathIntegerList(int[] pred, int source,
+            int destination) {
         final List<Integer> path = new ArrayList<>();
         int vertex = destination;
         while (vertex != source) {
@@ -64,7 +66,8 @@ public class ShortestPath {
         final List<String> path = new ArrayList<>();
         int vertex = destination;
         while (vertex != source) {
-            path.add(graph.getMappedVertex(vertex) + "--" + graph.getEdgeWeight(vertex, pred[vertex]));
+            path.add(graph.getMappedVertex(vertex) + "--" + graph.getEdgeWeight(vertex,
+                    pred[vertex]));
             vertex = pred[vertex];
         }
         path.add(graph.getMappedVertex(source));

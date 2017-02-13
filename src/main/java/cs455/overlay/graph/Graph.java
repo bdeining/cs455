@@ -122,7 +122,7 @@ public class Graph {
 
     public void generateConnectedGraph() {
         generateLinearRing();
-        randomlyConnectVertices();
+        connectVerticesRemaining();
     }
 
     /**
@@ -144,39 +144,40 @@ public class Graph {
     }
 
     /**
-     * Randomly assign vertices until the number of connections specified is met
+     * Assign vertices until the number of connections (4) specified is met
      */
-    private void randomlyConnectVertices() {
-        for (int i = 0; i < adjacencyList.size(); i++) {
-            while (!isConnectionLimitReached(i)) {
-                Edge vertex = getRandomVertex(i);
-                Edge backVertex = new Edge(vertex.getWeight(), i);
-                if (!adjacencyList.get(i)
-                        .contains(vertex)) {
-                    if (!adjacencyList.get(vertex.getVertex())
-                            .contains(backVertex)) {
-                        adjacencyList.get(i)
-                                .add(vertex);
-                        adjacencyList.get(vertex.getVertex())
-                                .add(backVertex);
-                    }
-                }
-            }
+    private void connectVerticesRemaining() {
+        for(int i=0; i< adjacencyList.size()-2; i+=2) {
+            Edge vertex = new Edge(getRandomEdgeWeight(), i);
+            Edge backVertex = new Edge(vertex.getWeight(), i+2);
+            adjacencyList.get(i)
+                    .add(backVertex);
+            adjacencyList.get(backVertex.getVertex())
+                    .add(vertex);
         }
-    }
 
-    /**
-     * Check if the given vertex has reached the connection limit
-     *
-     * @param vertex
-     * @return true if the vertex exceeds the connectionLimit
-     */
-    private boolean isConnectionLimitReached(int vertex) {
-        if (adjacencyList.get(vertex)
-                .size() < numberOfConnections) {
-            return false;
+        Edge vertex = new Edge(getRandomEdgeWeight(), 0);
+        Edge backVertex = new Edge(vertex.getWeight(), adjacencyList.size()-2);
+        adjacencyList.get(vertex.getVertex())
+                .add(backVertex);
+        adjacencyList.get(backVertex.getVertex())
+                .add(vertex);
+
+        for(int i=1; i< adjacencyList.size()-2; i+=2) {
+            vertex = new Edge(getRandomEdgeWeight(), i);
+            backVertex = new Edge(vertex.getWeight(), i+2);
+            adjacencyList.get(i)
+                    .add(backVertex);
+            adjacencyList.get(backVertex.getVertex())
+                    .add(vertex);
         }
-        return true;
+
+        vertex = new Edge(getRandomEdgeWeight(), 1);
+        backVertex = new Edge(vertex.getWeight(), adjacencyList.size()-1);
+        adjacencyList.get(vertex.getVertex())
+                .add(backVertex);
+        adjacencyList.get(backVertex.getVertex())
+                .add(vertex);
     }
 
     /**

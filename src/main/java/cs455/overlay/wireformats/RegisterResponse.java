@@ -58,4 +58,8 @@ public class RegisterResponse implements Event {
     public int getType() {
         return type;
     }
+
+    public String getAdditionalInfo() {
+        return additionalInfo;
+    }
 }

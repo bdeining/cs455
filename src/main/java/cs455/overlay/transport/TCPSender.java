@@ -28,7 +28,9 @@ public class TCPSender implements Runnable {
 
     private class SocketMessage {
         private Socket socket;
+
         private byte[] bytes;
+
         public SocketMessage(Socket socket, byte[] bytes) {
             this.socket = socket;
             this.bytes = bytes;
@@ -45,7 +47,7 @@ public class TCPSender implements Runnable {
 
     @Override
     public void run() {
-        while(true) {
+        while (true) {
             if (!concurrentLinkedQueue.isEmpty()) {
                 SocketMessage socketMessage = concurrentLinkedQueue.poll();
                 Socket socket = socketMessage.getSocket();

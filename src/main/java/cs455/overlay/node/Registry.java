@@ -146,12 +146,13 @@ public class Registry implements Node {
      * and the IP obtained from the Event match.  If the node is already registered, the method responds
      * to the MessagingNode with an error.
      *
-     * @param socket - the socket the register request originated from
+     * @param socket  - the socket the register request originated from
      * @param eventIp - the ip from the register request
-     * @param port - the listening port of the messaging node
+     * @param port    - the listening port of the messaging node
      */
     public void registerMessagingNode(Socket socket, String eventIp, int port) {
-        String ip = socket.getInetAddress().getHostAddress();
+        String ip = socket.getInetAddress()
+                .getHostAddress();
         Event event;
         byte statusCode = 0;
 
@@ -181,9 +182,10 @@ public class Registry implements Node {
         try {
             sendEventToIpWithoutCatch(socket, event);
         } catch (IOException e) {
-            if(registeredNodes.containsKey(ip)) {
+            if (registeredNodes.containsKey(ip)) {
                 registeredNodes.remove(ip);
-                System.out.println("Unable to send Registry Response to " + ip + ".  De-registering node.");
+                System.out.println(
+                        "Unable to send Registry Response to " + ip + ".  De-registering node.");
             }
         }
     }
@@ -193,13 +195,14 @@ public class Registry implements Node {
      * and the IP obtained from the Event match.  If the node is not registered, the method responds
      * to the MessagingNode with an error.
      *
-     * @param socket - the socket the deregister request originated from
+     * @param socket  - the socket the deregister request originated from
      * @param eventIp - the ip from the deregister request
-     * @param port - the listening port of the messaging node
+     * @param port    - the listening port of the messaging node
      */
     public void deRegisterNode(Socket socket, String eventIp, int port) {
         Event event;
-        String ip = socket.getInetAddress().getHostAddress() + ":" + port;
+        String ip = socket.getInetAddress()
+                .getHostAddress() + ":" + port;
         byte statusCode = 0;
 
         /* Check if there is a mismatch in the address that is specified in the deregistration
@@ -209,7 +212,6 @@ public class Registry implements Node {
                     "Deregistration request unsuccessful.  There is a mismatch between the address specified and the originating ip.");
             sendEventToIp(socket, event);
         }
-
 
         if (registeredNodes.containsKey(ip)) {
             registeredNodes.remove(socket);
@@ -231,7 +233,8 @@ public class Registry implements Node {
      * listed. Information for each messaging node should be listed on a separate line.
      **/
     public void listMessagingNodes() {
-        registeredNodes.keySet().forEach(System.out::println);
+        registeredNodes.keySet()
+                .forEach(System.out::println);
     }
 
     /**
@@ -242,7 +245,7 @@ public class Registry implements Node {
      * (broccoli.cs.colostate.edu:5001) with a link weight of 8.
      */
     public void listWeights() {
-        if(graph == null) {
+        if (graph == null) {
             System.out.println("No links have been weighted yet");
             return;
         }
@@ -265,8 +268,9 @@ public class Registry implements Node {
      * @param numberOfConnections
      */
     public void setupOverlay(int numberOfConnections) {
-        if(registeredNodes.size() < numberOfConnections ) {
-            System.out.println("Unable to set-up overlay.  The number of connections is greater than the number of registered nodes.");
+        if (registeredNodes.size() < numberOfConnections) {
+            System.out.println(
+                    "Unable to set-up overlay.  The number of connections is greater than the number of registered nodes.");
             return;
         }
 
@@ -330,6 +334,7 @@ public class Registry implements Node {
      * Handles task complete messages and stores them in a map.  If the last taskComplete message
      * message for the overlay is received, sleep for a dynamic amount of time and send a PullTrafficSummary
      * to all Messaging Nodes.
+     *
      * @param event - the task complete message
      */
     public synchronized void taskComplete(TaskComplete event) {
@@ -342,7 +347,9 @@ public class Registry implements Node {
                 if (rounds > 3000) {
                     sleepTime += rounds;
                 }
-                System.out.println("All nodes reported task complete.  Waiting for " + (sleepTime/1000) + " seconds.");
+                System.out.println(
+                        "All nodes reported task complete.  Waiting for " + (sleepTime / 1000)
+                                + " seconds.");
                 Thread.sleep(sleepTime);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -377,7 +384,8 @@ public class Registry implements Node {
 
         this.trafficSummary.put(source, output);
 
-        if (allNodesComplete(this.trafficSummary) && TOTAL_TRAFFIC_SUMMARY.get() == this.trafficSummary.size()) {
+        if (allNodesComplete(this.trafficSummary)
+                && TOTAL_TRAFFIC_SUMMARY.get() == this.trafficSummary.size()) {
             System.out.println(String.format(outputFormat,
                     "",
                     "Sent",
@@ -385,7 +393,8 @@ public class Registry implements Node {
                     "Sent Sum",
                     "Received Sum",
                     "Relayed"));
-            this.trafficSummary.values().forEach(System.out::println);
+            this.trafficSummary.values()
+                    .forEach(System.out::println);
 
             System.out.println(String.format(outputFormat,
                     "Sum",
@@ -435,8 +444,9 @@ public class Registry implements Node {
 
     /**
      * Sends a message to a socket without catching exceptions.
+     *
      * @param socket - the socket to send the event
-     * @param event - the event
+     * @param event  - the event
      * @throws IOException on communication failures
      */
     private static void sendEventToIpWithoutCatch(Socket socket, Event event) throws IOException {
@@ -445,14 +455,16 @@ public class Registry implements Node {
 
     /**
      * Sends a message to a socket.
+     *
      * @param socket - the socket to send the event
-     * @param event - the event
+     * @param event  - the event
      */
     private static void sendEventToIp(Socket socket, Event event) {
         try {
             tcpSender.sendData(event.getBytes(), socket);
         } catch (IOException e) {
-            System.out.println("Unable to communicate with socket : " + socket.getInetAddress().getHostAddress());
+            System.out.println("Unable to communicate with socket : " + socket.getInetAddress()
+                    .getHostAddress());
         }
     }
 }

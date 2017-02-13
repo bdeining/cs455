@@ -17,6 +17,7 @@ import cs455.overlay.wireformats.LinkWeights;
 import cs455.overlay.wireformats.Message;
 import cs455.overlay.wireformats.MessagingNodesList;
 import cs455.overlay.wireformats.RegisterRequest;
+import cs455.overlay.wireformats.RegisterResponse;
 import cs455.overlay.wireformats.TaskComplete;
 import cs455.overlay.wireformats.TaskInitiate;
 import cs455.overlay.wireformats.TrafficSummary;
@@ -69,11 +70,16 @@ public class TCPReceiverThread implements Runnable {
                 case 2:
                     if (node instanceof Registry) {
                         DeregisterRequest deregisterRequest = (DeregisterRequest) event;
-                        ((Registry) node).deRegisterNode(socket, deregisterRequest.getIpAddress(), deregisterRequest.getPort());
+                        ((Registry) node).deRegisterNode(socket,
+                                deregisterRequest.getIpAddress(),
+                                deregisterRequest.getPort());
                     }
                     break;
                 case 3:
-                    // Register Response Print message
+                    if (node instanceof MessagingNode) {
+                        RegisterResponse registerResponse = (RegisterResponse) event;
+                        ((MessagingNode) node).printRegisterResponse(registerResponse.getAdditionalInfo());
+                    }
                     break;
 
                 case 4:
@@ -90,8 +96,8 @@ public class TCPReceiverThread implements Runnable {
                     break;
                 case 6:
                     if (node instanceof MessagingNode) {
-                        String destination = ((Message)event).getDestination();
-                        int payload = ((Message)event).getPayload();
+                        String destination = ((Message) event).getDestination();
+                        int payload = ((Message) event).getPayload();
                         ((MessagingNode) node).processMessage(event, destination, payload);
                     }
                     break;
@@ -123,13 +129,13 @@ public class TCPReceiverThread implements Runnable {
 
                 case 11:
                     if (node instanceof MessagingNode) {
-                        ((MessagingNode)node).pullTrafficSummary();
+                        ((MessagingNode) node).pullTrafficSummary();
                     }
                     break;
 
                 case 12:
                     if (node instanceof Registry) {
-                        TrafficSummary trafficSummary = (TrafficSummary)event;
+                        TrafficSummary trafficSummary = (TrafficSummary) event;
                         ((Registry) node).trafficSummary(trafficSummary);
                     }
                 }

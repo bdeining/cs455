@@ -157,6 +157,18 @@ public class GraphTest {
     }
 
     @Test
+    public void testExactConnectionLimit() {
+        for(int i=5; i<100; i++) {
+            int numConnected = 4;
+            graph = new Graph(generateNodes(i), numConnected);
+            graph.generateConnectedGraph();
+            for(List<Edge> edges : graph.getAdjacencyList()) {
+                assertThat(edges.size(), is(numConnected));
+            }
+        }
+    }
+
+    @Test
     public void testFullMessageNodeList() {
         graph = new Graph(generateNodes(10), 4);
         graph.generateConnectedGraph();
