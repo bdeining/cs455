@@ -16,5 +16,5 @@ make clean
 make
 
 To Run Make JARs :
-java cs455.overlay.node.MessagingNode "denver.cs.colostate.edu" "50000"
+java cs455.overlay.node.MessagingNode "localhost" "50000"
 java cs455.overlay.node.Registry "50000"

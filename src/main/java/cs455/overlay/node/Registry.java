@@ -214,7 +214,7 @@ public class Registry implements Node {
         }
 
         if (registeredNodes.containsKey(ip)) {
-            registeredNodes.remove(socket);
+            registeredNodes.remove(ip);
             statusCode = 1;
             event = EventFactory.createDeregisterResponse(statusCode,
                     "Deregistration request "
