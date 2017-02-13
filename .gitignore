@@ -2,3 +2,4 @@
 *.idea
 target/
 cs455/
+*.DS_Store
