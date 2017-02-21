@@ -3,12 +3,20 @@ package cs455.scaling.server;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 public class Server {
 
@@ -20,6 +28,10 @@ public class Server {
     private static int portNum;
 
     private static int threadPoolSize;
+
+    private Map<SocketChannel, ArrayList> dataMapper= new HashMap<>();
+
+    private Selector selector;
 
     private ServerSocketChannel serverSocketChannel;
 
@@ -57,25 +69,78 @@ public class Server {
     }
 
     public void startServer() throws IOException {
-        serverSocketChannel = ServerSocketChannel.open();
-        serverSocketChannel.configureBlocking(false);
-        serverSocketChannel.socket().bind(new InetSocketAddress(inetAddress,portNum));
+        this.selector = Selector.open();
+        ServerSocketChannel serverChannel = ServerSocketChannel.open();
+        serverChannel.configureBlocking(false);
 
-        Selector selector = Selector.open();
-        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+        // retrieve server socket and bind to port
+        serverChannel.socket()
+                .bind(new InetSocketAddress(inetAddress, portNum));
+        serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);
+
+        System.out.println("Server started...");
 
         while (true) {
-            selector.select();
-            Iterator it = selector.selectedKeys().iterator();
-            while (it.hasNext()) {
-                SelectionKey selKey = (SelectionKey) it.next();
+            // wait for events
+            this.selector.select();
 
-                if (selKey.isAcceptable()) {
-                    ServerSocketChannel ssChannel = (ServerSocketChannel) selKey.channel();
-                    SocketChannel sc = ssChannel.accept();
+            //work on selected keys
+            Iterator keys = this.selector.selectedKeys()
+                    .iterator();
+            while (keys.hasNext()) {
+                SelectionKey key = (SelectionKey) keys.next();
+
+                // this is necessary to prevent the same key from coming up
+                // again the next time around.
+                keys.remove();
+
+                if (!key.isValid()) {
+                    continue;
                 }
-                it.remove();
+
+                if (key.isAcceptable()) {
+                    this.accept(key);
+                } else if (key.isReadable()) {
+                    this.read(key);
+                }
+
             }
         }
+    }
+
+    //accept a connection made to this channel's socket
+    private void accept(SelectionKey key) throws IOException {
+        ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel();
+        SocketChannel channel = serverChannel.accept();
+        channel.configureBlocking(false);
+        Socket socket = channel.socket();
+        SocketAddress remoteAddr = socket.getRemoteSocketAddress();
+        System.out.println("Connected to: " + remoteAddr);
+
+        // register channel with selector for further IO
+        dataMapper.put(channel, new ArrayList<>());
+        channel.register(this.selector, SelectionKey.OP_READ);
+    }
+
+    //read from the socket channel
+    private void read(SelectionKey key) throws IOException {
+        SocketChannel channel = (SocketChannel) key.channel();
+        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        int numRead = -1;
+        numRead = channel.read(buffer);
+
+        if (numRead == -1) {
+            this.dataMapper.remove(channel);
+            Socket socket = channel.socket();
+            SocketAddress remoteAddr = socket.getRemoteSocketAddress();
+            System.out.println("Connection closed by client: " + remoteAddr);
+            channel.close();
+            key.cancel();
+            return;
+        }
+
+        byte[] data = new byte[numRead];
+        System.arraycopy(buffer.array(), 0, data, 0, numRead);
+        System.out.println("Got: " + new String(data));
     }
 }
