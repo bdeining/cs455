@@ -54,8 +54,8 @@ public class Client {
         System.out.println("Client... started");
 
         while (true) {
-            byte[] message = "test1".getBytes();
-            ByteBuffer buffer = ByteBuffer.wrap(message);
+
+            ByteBuffer buffer = generateMessage();
             client.write(buffer);
             System.out.println("sending message test1");
             buffer.clear();
@@ -70,7 +70,9 @@ public class Client {
             bytes[i] = (byte) i;
         }
         try {
-            hashCodes.add(SHA1FromBytes(bytes));
+            String hashCode = SHA1FromBytes(bytes);
+            System.out.println(hashCode);
+            hashCodes.add(hashCode);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
@@ -84,6 +86,7 @@ public class Client {
         MessageDigest digest = MessageDigest.getInstance("SHA1");
         byte[] hash = digest.digest(data);
         BigInteger hashInt = new BigInteger(1, hash);
+
         return hashInt.toString(16);
     }
 }

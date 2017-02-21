@@ -121,7 +121,7 @@ public class Server {
 
     private void read(SelectionKey key) throws IOException {
         SocketChannel channel = (SocketChannel) key.channel();
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        ByteBuffer buffer = ByteBuffer.allocate(8000);
         int numRead = channel.read(buffer);
 
         if (numRead == -1) {
@@ -136,7 +136,12 @@ public class Server {
 
         byte[] data = new byte[numRead];
         System.arraycopy(buffer.array(), 0, data, 0, numRead);
-        System.out.println("Got: " + new String(data));
+        try {
+            System.out.println(SHA1FromBytes(data));
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+
     }
 
     private void write() {
