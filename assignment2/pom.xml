@@ -6,10 +6,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.cs455.bdeining</groupId>
-    <artifactId>assignment1</artifactId>
+    <artifactId>assignment2</artifactId>
     <version>0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>CS455 Assignment 1</name>
+    <name>CS455 Assignment 2</name>
 
     <dependencies>
         <dependency>
@@ -28,7 +28,7 @@
 
     <profiles>
         <profile>
-            <id>registry</id>
+            <id>server</id>
             <build>
                 <plugins>
                     <plugin>
@@ -40,7 +40,7 @@
                             </descriptorRefs>
                             <archive>
                                 <manifest>
-                                    <mainClass>cs455.overlay.node.Registry</mainClass>
+                                    <mainClass>cs455.scaling.server.Server</mainClass>
                                 </manifest>
                             </archive>
                             <finalName>registry</finalName>
@@ -59,7 +59,7 @@
             </build>
         </profile>
         <profile>
-            <id>messagingNode</id>
+            <id>client</id>
             <build>
                 <plugins>
                     <plugin>
@@ -71,7 +71,7 @@
                             </descriptorRefs>
                             <archive>
                                 <manifest>
-                                    <mainClass>cs455.overlay.node.MessagingNode</mainClass>
+                                    <mainClass>cs455.scaling.client.Client</mainClass>
                                 </manifest>
                             </archive>
                             <finalName>messagingNode</finalName>
