@@ -43,7 +43,7 @@
                                     <mainClass>cs455.scaling.server.Server</mainClass>
                                 </manifest>
                             </archive>
-                            <finalName>registry</finalName>
+                            <finalName>server</finalName>
                         </configuration>
                         <executions>
                             <execution>
@@ -74,7 +74,7 @@
                                     <mainClass>cs455.scaling.client.Client</mainClass>
                                 </manifest>
                             </archive>
-                            <finalName>messagingNode</finalName>
+                            <finalName>client</finalName>
                         </configuration>
                         <executions>
                             <execution>

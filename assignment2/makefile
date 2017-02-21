@@ -7,4 +7,4 @@ clean:
 
 compile:
 	@echo '[INFO] Compiling source...'
-	@javac -d . src/main/java/cs455/overlay/**/*.java
+	@javac -d . src/main/java/cs455/scaling/**/*.java

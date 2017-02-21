@@ -2,8 +2,8 @@ CS455 Assignment 1
 
 To build with Maven :
 There are two separate profiles that will send the Main Class to either MessagingNode or Registry.
-mvn compile assembly:single -Pregistry
-mvn compile assembly:single -PmessagingNode
+mvn compile assembly:single -Pserver
+mvn compile assembly:single -Pclient
 
 To Run Maven JARs :
 cd target/
@@ -16,5 +16,5 @@ make clean
 make
 
 To Run Make JARs :
-java cs455.overlay.node.MessagingNode "localhost" "50000"
-java cs455.overlay.node.Registry "50000"
+java cs455.scaling.server.Server "50000" "10"
+java cs455.scaling.server.Server "50000"
