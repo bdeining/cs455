@@ -1,15 +1,19 @@
 package cs455.scaling.client;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.LinkedList;
 
 public class Client {
 
     private static String serverHost;
+
+    private LinkedList<String> hashCodes;
 
     private static int serverPort;
 
@@ -33,6 +37,7 @@ public class Client {
     }
 
     public Client() {
+        hashCodes = new LinkedList<>();
         try {
             startClient();
         } catch (IOException | InterruptedException e) {
@@ -48,28 +53,37 @@ public class Client {
 
         System.out.println("Client... started");
 
-        String threadName = Thread.currentThread().getName();
-
-        // Send messages to server
-        String [] messages = new String []
-                {threadName + ": test1",threadName + ": test2",threadName + ": test3"};
-
-        for (int i = 0; i < messages.length; i++) {
-            byte [] message = new String(messages [i]).getBytes();
+        while (true) {
+            byte[] message = "test1".getBytes();
             ByteBuffer buffer = ByteBuffer.wrap(message);
             client.write(buffer);
-            System.out.println(messages [i]);
+            System.out.println("sending message test1");
             buffer.clear();
-            Thread.sleep(5000);
+            Thread.sleep(1000 / messageRate);
         }
-        client.close();
+
     }
 
     private ByteBuffer generateMessage() {
         byte[] bytes = new byte[8000];
-        for(int i = 0; i< 8000; i++) {
+        for (int i = 0; i < 8000; i++) {
             bytes[i] = (byte) i;
         }
+        try {
+            hashCodes.add(SHA1FromBytes(bytes));
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+
         return ByteBuffer.wrap(bytes);
+    }
+
+
+    //TODO Common Util
+    private String SHA1FromBytes(byte[] data) throws NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA1");
+        byte[] hash = digest.digest(data);
+        BigInteger hashInt = new BigInteger(1, hash);
+        return hashInt.toString(16);
     }
 }
