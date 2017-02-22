@@ -4,9 +4,15 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 public class Client {
@@ -16,6 +22,8 @@ public class Client {
     private LinkedList<String> hashCodes;
 
     private static int serverPort;
+
+    private Selector selector;
 
     private static int messageRate;
 
@@ -42,26 +50,48 @@ public class Client {
             startClient();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
-            return;
         }
     }
 
     private void startClient() throws IOException, InterruptedException {
-
-        InetSocketAddress hostAddress = new InetSocketAddress(serverHost, serverPort);
-        SocketChannel client = SocketChannel.open(hostAddress);
-
-        System.out.println("Client... started");
+        selector = Selector.open();
+        SocketChannel channel = SocketChannel.open();
+        channel.configureBlocking(false);
+        channel.connect(new InetSocketAddress(serverHost, serverPort));
+        channel.register(selector, SelectionKey.OP_CONNECT);
 
         while (true) {
+            selector.select();
 
-            ByteBuffer buffer = generateMessage();
-            client.write(buffer);
-            System.out.println("sending message test1");
-            buffer.clear();
-            Thread.sleep(1000 / messageRate);
+            Iterator i = selector.selectedKeys().iterator();
+            System.out.println(selector.selectedKeys().size());
+            while (i.hasNext()) {
+                SelectionKey key = (SelectionKey) i.next();
+
+                i.remove();
+                if (key.isConnectable()) {
+                    System.out.println("connectible");
+                    if (channel.finishConnect()) {
+                        key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+                    }
+                } else if (key.isReadable()) {
+                    System.out.println("read");
+                    ByteBuffer buf = ByteBuffer.allocate(8000);
+                    buf.rewind();
+                    int read = channel.read(buf);
+                    System.out.println("bytes read " + read);
+                    byte[] data = new byte[read];
+                    System.arraycopy(buf.array(), 0, data, 0, read);
+                    System.out.println(new String(data));
+                } else if (key.isWritable()) {
+                    System.out.println("write");
+                    ByteBuffer buffer = generateMessage();
+                    channel.write(buffer);
+                    buffer.clear();
+                    Thread.sleep(1000 / messageRate);
+                }
+            }
         }
-
     }
 
     private ByteBuffer generateMessage() {
@@ -71,7 +101,7 @@ public class Client {
         }
         try {
             String hashCode = SHA1FromBytes(bytes);
-            System.out.println(hashCode);
+            System.out.println("sending " + hashCode);
             hashCodes.add(hashCode);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -79,7 +109,6 @@ public class Client {
 
         return ByteBuffer.wrap(bytes);
     }
-
 
     //TODO Common Util
     private String SHA1FromBytes(byte[] data) throws NoSuchAlgorithmException {

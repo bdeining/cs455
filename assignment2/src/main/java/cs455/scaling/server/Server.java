@@ -99,8 +99,6 @@ public class Server {
                     this.accept(key);
                 } else if (key.isReadable()) {
                     this.read(key);
-                } else if(key.isWritable()) {
-                    this.write();
                 }
             }
         }
@@ -116,10 +114,12 @@ public class Server {
 
         // register channel with selector for further IO
         dataMapper.put(channel, new ArrayList<>());
-        channel.register(this.selector, SelectionKey.OP_READ);
+
+        channel.register(this.selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
     }
 
     private void read(SelectionKey key) throws IOException {
+        System.out.println("reading key");
         SocketChannel channel = (SocketChannel) key.channel();
         ByteBuffer buffer = ByteBuffer.allocate(8000);
         int numRead = channel.read(buffer);
@@ -136,16 +136,21 @@ public class Server {
 
         byte[] data = new byte[numRead];
         System.arraycopy(buffer.array(), 0, data, 0, numRead);
-        try {
-            System.out.println(SHA1FromBytes(data));
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
+
+        System.out.println("received data");
+
+        write(key, data);
 
     }
 
-    private void write() {
-
+    private void write(SelectionKey key, byte[] data) {
+        SocketChannel channel = (SocketChannel) key.channel();
+        try {
+            ByteBuffer payload = ByteBuffer.wrap(SHA1FromBytes(data).getBytes());
+            channel.write(payload);
+        } catch (NoSuchAlgorithmException | IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private String SHA1FromBytes(byte[] data) throws NoSuchAlgorithmException {
