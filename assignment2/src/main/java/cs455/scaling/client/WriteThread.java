@@ -1,22 +1,22 @@
 package cs455.scaling.client;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Random;
 
+import cs455.scaling.util.Constants;
+import cs455.scaling.util.HashCodeGenerator;
+
 public class WriteThread implements Runnable {
+    private final List<String> hashCodes;
 
     private SelectionKey selectionKey;
 
     private SocketChannel socketChannel;
-
-    private List<String> hashCodes;
 
     private int messageRate;
 
@@ -56,13 +56,13 @@ public class WriteThread implements Runnable {
     }
 
     private ByteBuffer generateMessage() {
-        byte[] bytes = new byte[8000];
-        for (int i = 0; i < 8000; i++) {
+        byte[] bytes = new byte[Constants.BUFFER_SIZE];
+        for (int i = 0; i < bytes.length; i++) {
             bytes[i] = (byte) getRandomInt();
         }
 
         try {
-            String hashCode = SHA1FromBytes(bytes);
+            String hashCode = HashCodeGenerator.generateHashCodeFromBytes(bytes);
             synchronized (hashCodes) {
                 hashCodes.add(hashCode);
             }
@@ -72,15 +72,6 @@ public class WriteThread implements Runnable {
         }
 
         return ByteBuffer.wrap(bytes);
-    }
-
-    //TODO Common Util
-    private String SHA1FromBytes(byte[] data) throws NoSuchAlgorithmException {
-        MessageDigest digest = MessageDigest.getInstance("SHA1");
-        byte[] hash = digest.digest(data);
-        BigInteger hashInt = new BigInteger(1, hash);
-
-        return hashInt.toString(16);
     }
 
     private int getRandomInt() {

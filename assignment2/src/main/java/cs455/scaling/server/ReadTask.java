@@ -1,14 +1,15 @@
 package cs455.scaling.server;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+
+import cs455.scaling.util.Constants;
+import cs455.scaling.util.HashCodeGenerator;
 
 public class ReadTask implements Task {
 
@@ -25,7 +26,7 @@ public class ReadTask implements Task {
     @Override
     public void execute() {
         SocketChannel channel = (SocketChannel) selectionKey.channel();
-        ByteBuffer buffer = ByteBuffer.allocate(8000);
+        ByteBuffer buffer = ByteBuffer.allocate(Constants.BUFFER_SIZE);
 
         try {
             int numRead = channel.read(buffer);
@@ -43,7 +44,7 @@ public class ReadTask implements Task {
             byte[] data = new byte[numRead];
             System.arraycopy(buffer.array(), 0, data, 0, numRead);
 
-            String hashCode = SHA1FromBytes(data);
+            String hashCode = HashCodeGenerator.generateHashCodeFromBytes(data);
 
             Task writeTask = new WriteTask(selectionKey, hashCode);
             threadPoolManager.addTaskToQueue(writeTask);
@@ -52,14 +53,5 @@ public class ReadTask implements Task {
         } catch (IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-    }
-
-    //TODO Common Util
-    private String SHA1FromBytes(byte[] data) throws NoSuchAlgorithmException {
-        MessageDigest digest = MessageDigest.getInstance("SHA1");
-        byte[] hash = digest.digest(data);
-        BigInteger hashInt = new BigInteger(1, hash);
-
-        return hashInt.toString(16);
     }
 }

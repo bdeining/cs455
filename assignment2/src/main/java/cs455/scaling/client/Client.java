@@ -6,10 +6,11 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.LinkedList;
+
+import cs455.scaling.util.Constants;
 
 public class Client {
 
@@ -54,9 +55,6 @@ public class Client {
     }
 
     private void startClient() throws IOException, InterruptedException {
-
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-
         selector = Selector.open();
         SocketChannel channel = SocketChannel.open();
         channel.configureBlocking(false);
@@ -82,7 +80,7 @@ public class Client {
                         new Thread(writeThread).start();
                     }
                 } else if (key.isReadable()) {
-                    ByteBuffer buf = ByteBuffer.allocate(8000);
+                    ByteBuffer buf = ByteBuffer.allocate(Constants.BUFFER_SIZE);
                     buf.rewind();
                     int read = channel.read(buf);
                     byte[] data = new byte[read];
@@ -99,7 +97,7 @@ public class Client {
             if (after - before == 10) {
                 Calendar cal = Calendar.getInstance();
                 String output = String.format("[%s] Total Sent Count: %s, Total Received Count: %s",
-                        sdf.format(cal.getTime()),
+                        Constants.SIMPLE_DATE_FORMAT.format(cal.getTime()),
                         writeThread.getMessagesSent(),
                         messagesReceived);
                 System.out.println(output);
