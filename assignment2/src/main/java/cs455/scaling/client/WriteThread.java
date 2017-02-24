@@ -9,7 +9,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.locks.Lock;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class WriteThread implements Runnable {
 
@@ -17,18 +17,15 @@ public class WriteThread implements Runnable {
 
     private SocketChannel socketChannel;
 
-    private Lock lock;
-
     private List<String> hashCodes;
 
     private int messageRate;
 
     private long messagesSent;
 
-    public WriteThread(SocketChannel socketChannel, int messageRate, Lock lock, List<String> hashCodes) {
+    public WriteThread(SocketChannel socketChannel, int messageRate, List<String> hashCodes) {
         this.messageRate = messageRate;
         this.socketChannel = socketChannel;
-        this.lock = lock;
         this.hashCodes = hashCodes;
     }
 
@@ -38,10 +35,8 @@ public class WriteThread implements Runnable {
 
     @Override
     public void run() {
-        while(true) {
-
+        while (true) {
             if (selectionKey != null && selectionKey.isWritable()) {
-                System.out.println("write message");
                 ByteBuffer buffer = generateMessage();
                 try {
                     socketChannel.write(buffer);
@@ -66,15 +61,15 @@ public class WriteThread implements Runnable {
         for (int i = 0; i < 8000; i++) {
             bytes[i] = (byte) getRandomInt();
         }
+
         try {
             String hashCode = SHA1FromBytes(bytes);
-            System.out.println("sending " + hashCode);
-            lock.lock();
-            hashCodes.add(hashCode);
+            synchronized (hashCodes) {
+                hashCodes.add(hashCode);
+            }
+
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
-        } finally {
-            lock.unlock();
         }
 
         return ByteBuffer.wrap(bytes);

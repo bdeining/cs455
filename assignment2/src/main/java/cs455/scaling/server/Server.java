@@ -1,42 +1,26 @@
 package cs455.scaling.server;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
 
 public class Server {
-
-    /*
-    bytebuffer
-    socketchannel
-     */
 
     private static int portNum;
 
     private static int threadPoolSize;
 
-    private Map<SocketChannel, ArrayList> dataMapper= new HashMap<>();
-
     private Selector selector;
 
-    private ServerSocketChannel serverSocketChannel;
+    private ThreadPoolManager threadPoolManager;
 
     private static String inetAddress;
 
@@ -72,6 +56,8 @@ public class Server {
     }
 
     public void startServer() throws IOException {
+        threadPoolManager = new ThreadPoolManager(threadPoolSize);
+
         this.selector = Selector.open();
         ServerSocketChannel serverChannel = ServerSocketChannel.open();
         serverChannel.configureBlocking(false);
@@ -112,51 +98,12 @@ public class Server {
         SocketAddress remoteAddr = socket.getRemoteSocketAddress();
         System.out.println("Connected to: " + remoteAddr);
 
-        // register channel with selector for further IO
-        dataMapper.put(channel, new ArrayList<>());
-
-        channel.register(this.selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+        channel.register(this.selector, SelectionKey.OP_READ);
     }
 
     private void read(SelectionKey key) throws IOException {
-        System.out.println("reading key");
-        SocketChannel channel = (SocketChannel) key.channel();
-        ByteBuffer buffer = ByteBuffer.allocate(8000);
-        int numRead = channel.read(buffer);
-
-        if (numRead == -1) {
-            this.dataMapper.remove(channel);
-            Socket socket = channel.socket();
-            SocketAddress remoteAddr = socket.getRemoteSocketAddress();
-            System.out.println("Connection closed by client: " + remoteAddr);
-            channel.close();
-            key.cancel();
-            return;
-        }
-
-        byte[] data = new byte[numRead];
-        System.arraycopy(buffer.array(), 0, data, 0, numRead);
-
-        System.out.println("received data");
-
-        write(key, data);
-
-    }
-
-    private void write(SelectionKey key, byte[] data) {
-        SocketChannel channel = (SocketChannel) key.channel();
-        try {
-            ByteBuffer payload = ByteBuffer.wrap(SHA1FromBytes(data).getBytes());
-            channel.write(payload);
-        } catch (NoSuchAlgorithmException | IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private String SHA1FromBytes(byte[] data) throws NoSuchAlgorithmException {
-        MessageDigest digest = MessageDigest.getInstance("SHA1");
-        byte[] hash = digest.digest(data);
-        BigInteger hashInt = new BigInteger(1, hash);
-        return hashInt.toString(16);
+        Task task = new ReadTask(threadPoolManager, key);
+        threadPoolManager.addTaskToQueue(task);
+        key.interestOps(SelectionKey.OP_WRITE);
     }
 }
