@@ -2,4 +2,5 @@
 *.idea
 target/
 *.DS_Store
-/cs455
+assignment1/cs455
+assignment2/cs455
