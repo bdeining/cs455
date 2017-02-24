@@ -19,15 +19,10 @@ public class WriteTask implements Task {
     public void execute() {
         SocketChannel channel = (SocketChannel) selectionKey.channel();
         try {
-
-            System.out.println("write " + hashCode);
             ByteBuffer payload = ByteBuffer.wrap(hashCode.getBytes());
             channel.write(payload);
-
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
-
 }

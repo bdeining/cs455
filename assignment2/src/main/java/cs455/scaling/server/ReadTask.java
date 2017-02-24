@@ -9,10 +9,6 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 
 public class ReadTask implements Task {
 
@@ -28,7 +24,6 @@ public class ReadTask implements Task {
 
     @Override
     public void execute() {
-        System.out.println("reading key");
         SocketChannel channel = (SocketChannel) selectionKey.channel();
         ByteBuffer buffer = ByteBuffer.allocate(8000);
 
@@ -49,9 +44,6 @@ public class ReadTask implements Task {
             System.arraycopy(buffer.array(), 0, data, 0, numRead);
 
             String hashCode = SHA1FromBytes(data);
-
-            System.out.println("received data " + hashCode);
-            //threadPoolManager.addHashCodeToKey(selectionKey, hashCode);
 
             Task writeTask = new WriteTask(selectionKey, hashCode);
             threadPoolManager.addTaskToQueue(writeTask);
