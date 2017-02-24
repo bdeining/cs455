@@ -1,14 +1,15 @@
 package cs455.scaling.server;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.Queue;
 
 public class ThreadPoolManager {
 
     private final List<Worker> threadPool;
 
-    private final LinkedBlockingQueue<Task> tasks;
+    private final Queue<Task> tasks;
 
     public ThreadPoolManager(int threadPoolSize) {
         threadPool = new ArrayList<>();
@@ -17,7 +18,7 @@ public class ThreadPoolManager {
             threadPool.add(worker);
             new Thread(worker).start();
         }
-        tasks = new LinkedBlockingQueue<>();
+        tasks = new LinkedList<>();
     }
 
     public void addTaskToQueue(Task task) {
