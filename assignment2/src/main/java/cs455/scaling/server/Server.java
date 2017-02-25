@@ -91,6 +91,9 @@ public class Server {
                     this.read(key);
                 }
             }
+
+            threadPoolManager.assignTaskIfPossible();
+
             long after = System.currentTimeMillis() / 1000;
             if (after - before == 10) {
                 Calendar cal = Calendar.getInstance();
@@ -112,12 +115,12 @@ public class Server {
         SocketAddress remoteAddr = socket.getRemoteSocketAddress();
         System.out.println("Connected to: " + remoteAddr);
 
-        channel.register(this.selector, SelectionKey.OP_READ);
+        channel.register(this.selector, SelectionKey.OP_READ, "reading");
     }
 
     private void read(SelectionKey key) throws IOException {
+        key.interestOps(SelectionKey.OP_WRITE);
         Task task = new ReadTask(threadPoolManager, key);
         threadPoolManager.addTaskToQueue(task);
-        key.interestOps(SelectionKey.OP_WRITE);
     }
 }

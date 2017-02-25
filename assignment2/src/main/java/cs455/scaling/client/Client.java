@@ -78,6 +78,7 @@ public class Client {
                         key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
                         writeThread = new WriteThread(channel, messageRate, hashCodes);
                         new Thread(writeThread).start();
+                        before = System.currentTimeMillis() / 1000;
                     }
                 } else if (key.isReadable()) {
                     ByteBuffer buf = ByteBuffer.allocate(Constants.BUFFER_SIZE);
@@ -109,11 +110,10 @@ public class Client {
     private void removeHashCode(String hashCode) {
 
         synchronized (hashCodes) {
-
-            for (String comp : hashCodes) {
-                if (hashCode.equals(comp)) {
-                    hashCodes.remove(hashCode);
-                }
+            if(hashCodes.contains(hashCode)) {
+                hashCodes.remove(hashCode);
+            } else {
+                System.out.println("bad hashcode " + hashCode);
             }
 
         }

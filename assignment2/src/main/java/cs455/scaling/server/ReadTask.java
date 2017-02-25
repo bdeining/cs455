@@ -27,7 +27,8 @@ public class ReadTask implements Task {
     public void execute() {
         SocketChannel channel = (SocketChannel) selectionKey.channel();
         ByteBuffer buffer = ByteBuffer.allocate(Constants.BUFFER_SIZE);
-
+        buffer.clear();
+        //System.out.println("read");
         try {
             int numRead = channel.read(buffer);
 
@@ -43,13 +44,12 @@ public class ReadTask implements Task {
 
             byte[] data = new byte[numRead];
             System.arraycopy(buffer.array(), 0, data, 0, numRead);
-
             String hashCode = HashCodeGenerator.generateHashCodeFromBytes(data);
-
+            //System.out.println(hashCode);
+            selectionKey.attach("read");
             Task writeTask = new WriteTask(selectionKey, hashCode);
+            //System.out.println("add write to queue " + hashCode);
             threadPoolManager.addTaskToQueue(writeTask);
-
-            selectionKey.interestOps(SelectionKey.OP_READ);
         } catch (IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
         }

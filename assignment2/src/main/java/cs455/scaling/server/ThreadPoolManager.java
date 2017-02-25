@@ -1,24 +1,24 @@
 package cs455.scaling.server;
 
-import java.util.ArrayList;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 
 public class ThreadPoolManager {
 
-    private final List<Worker> threadPool;
+    private final Queue<Worker> threadPool;
 
-    private final Queue<Task> tasks;
+    private final Deque<Task> tasks;
 
     public ThreadPoolManager(int threadPoolSize) {
-        threadPool = new ArrayList<>();
+        threadPool = new LinkedList<>();
         for (int i = 0; i < threadPoolSize; i++) {
             Worker worker = new Worker(this);
             threadPool.add(worker);
             new Thread(worker).start();
         }
-        tasks = new LinkedList<>();
+        tasks = new ArrayDeque<>();
     }
 
     public void addTaskToQueue(Task task) {
@@ -27,27 +27,28 @@ public class ThreadPoolManager {
         }
     }
 
-    public void removeWorkerFromThreadPool(Worker worker) {
-        synchronized (threadPool) {
-            threadPool.remove(worker);
-        }
+    public void addWorkerToThreadPool(Worker worker) {
+            threadPool.add(worker);
     }
 
-    public void addWorkerToThreadPool(Worker worker) {
-        synchronized (threadPool) {
-            threadPool.add(worker);
+    public void assignTaskIfPossible() {
+        Task task = getTask();
+        if(task == null) {
+            return;
+        }
+
+        Worker worker = threadPool.poll();
+        if(worker != null) {
+            worker.assignTask(task);
         }
     }
 
     public Task getTask() {
-        if (tasks == null) {
+        if (tasks == null || tasks.size() == 0) {
             return null;
         }
-
-        Task task;
         synchronized (tasks) {
-            task = tasks.poll();
+            return tasks.poll();
         }
-        return task;
     }
 }
