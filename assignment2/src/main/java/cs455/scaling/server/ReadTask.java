@@ -13,7 +13,7 @@ import cs455.scaling.util.HashCodeGenerator;
 
 public class ReadTask implements Task {
 
-    private SelectionKey selectionKey;
+    private final SelectionKey selectionKey;
 
     private ThreadPoolManager threadPoolManager;
 
@@ -30,9 +30,21 @@ public class ReadTask implements Task {
         buffer.clear();
         //System.out.println("read");
         try {
-            int numRead = channel.read(buffer);
 
-            if (numRead == -1) {
+            int read = 0;
+            while(buffer.hasRemaining() && read != 1) {
+                read = channel.read(buffer);
+
+
+            }
+
+
+            byte[] data = new byte[Constants.BUFFER_SIZE];
+            System.arraycopy(buffer.array(), 0, data, 0, Constants.BUFFER_SIZE);
+            String hashCode = HashCodeGenerator.generateHashCodeFromBytes(data);
+            System.out.println(hashCode);
+
+/*            if (numRead == -1) {
 
                 Socket socket = channel.socket();
                 SocketAddress remoteAddr = socket.getRemoteSocketAddress();
@@ -40,16 +52,14 @@ public class ReadTask implements Task {
                 channel.close();
                 selectionKey.cancel();
                 return;
-            }
+            }*/
 
-            byte[] data = new byte[numRead];
-            System.arraycopy(buffer.array(), 0, data, 0, numRead);
-            String hashCode = HashCodeGenerator.generateHashCodeFromBytes(data);
+
             //System.out.println(hashCode);
-            selectionKey.attach("read");
-            Task writeTask = new WriteTask(selectionKey, hashCode);
+  //          selectionKey.attach("read");
+  //          Task writeTask = new WriteTask(selectionKey, hashCode);
             //System.out.println("add write to queue " + hashCode);
-            threadPoolManager.addTaskToQueue(writeTask);
+//            threadPoolManager.addTaskToQueue(writeTask);
         } catch (IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
         }

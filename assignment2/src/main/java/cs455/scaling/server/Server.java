@@ -89,10 +89,11 @@ public class Server {
                     this.accept(key);
                 } else if (key.isReadable()) {
                     this.read(key);
+                    threadPoolManager.assignTaskIfPossible();
                 }
             }
 
-            threadPoolManager.assignTaskIfPossible();
+
 
             long after = System.currentTimeMillis() / 1000;
             if (after - before == 10) {
@@ -119,7 +120,7 @@ public class Server {
     }
 
     private void read(SelectionKey key) throws IOException {
-        key.interestOps(SelectionKey.OP_WRITE);
+//        key.interestOps(SelectionKey.OP_WRITE);
         Task task = new ReadTask(threadPoolManager, key);
         threadPoolManager.addTaskToQueue(task);
     }

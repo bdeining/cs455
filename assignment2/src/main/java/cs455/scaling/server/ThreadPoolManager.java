@@ -1,7 +1,6 @@
 package cs455.scaling.server;
 
 import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -9,7 +8,7 @@ public class ThreadPoolManager {
 
     private final Queue<Worker> threadPool;
 
-    private final Deque<Task> tasks;
+    private final Queue<Task> tasks;
 
     public ThreadPoolManager(int threadPoolSize) {
         threadPool = new LinkedList<>();
@@ -22,13 +21,15 @@ public class ThreadPoolManager {
     }
 
     public void addTaskToQueue(Task task) {
-        synchronized (tasks) {
+        //synchronized (tasks) {
             tasks.add(task);
-        }
+        //}
     }
 
     public void addWorkerToThreadPool(Worker worker) {
+        synchronized (threadPool) {
             threadPool.add(worker);
+        }
     }
 
     public void assignTaskIfPossible() {
@@ -37,9 +38,11 @@ public class ThreadPoolManager {
             return;
         }
 
-        Worker worker = threadPool.poll();
-        if(worker != null) {
-            worker.assignTask(task);
+        synchronized (threadPool) {
+            Worker worker = threadPool.poll();
+            if (worker != null) {
+                worker.assignTask(task);
+            }
         }
     }
 
@@ -47,8 +50,8 @@ public class ThreadPoolManager {
         if (tasks == null || tasks.size() == 0) {
             return null;
         }
-        synchronized (tasks) {
+        //synchronized (tasks) {
             return tasks.poll();
-        }
+        //}
     }
 }
