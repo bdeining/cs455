@@ -28,14 +28,20 @@ public class ReadTask implements Task {
         SocketChannel channel = (SocketChannel) selectionKey.channel();
         ByteBuffer buffer = ByteBuffer.allocate(Constants.BUFFER_SIZE);
         buffer.clear();
-        //System.out.println("read");
         try {
 
             int read = 0;
             while(buffer.hasRemaining() && read != 1) {
                 read = channel.read(buffer);
+            }
 
-
+            if (read == -1) {
+                Socket socket = channel.socket();
+                SocketAddress remoteAddr = socket.getRemoteSocketAddress();
+                System.out.println("Connection closed by client: " + remoteAddr);
+                channel.close();
+                selectionKey.cancel();
+                return;
             }
 
 
@@ -44,22 +50,11 @@ public class ReadTask implements Task {
             String hashCode = HashCodeGenerator.generateHashCodeFromBytes(data);
             System.out.println(hashCode);
 
-/*            if (numRead == -1) {
-
-                Socket socket = channel.socket();
-                SocketAddress remoteAddr = socket.getRemoteSocketAddress();
-                System.out.println("Connection closed by client: " + remoteAddr);
-                channel.close();
-                selectionKey.cancel();
-                return;
-            }*/
-
-
-            //System.out.println(hashCode);
-  //          selectionKey.attach("read");
-  //          Task writeTask = new WriteTask(selectionKey, hashCode);
-            //System.out.println("add write to queue " + hashCode);
-//            threadPoolManager.addTaskToQueue(writeTask);
+            State state = (State) selectionKey.attachment();
+            state.setOperation("read");
+            state.setHashCode(hashCode);
+            //Task writeTask = new WriteTask(selectionKey);
+            //threadPoolManager.addTaskToQueue(writeTask);
         } catch (IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
         }

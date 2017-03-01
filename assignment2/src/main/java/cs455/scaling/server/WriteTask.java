@@ -8,26 +8,26 @@ import java.nio.channels.SocketChannel;
 public class WriteTask implements Task {
     private final SelectionKey selectionKey;
 
-    private String hashCode;
-
-    public WriteTask(SelectionKey selectionKey, String hashCode) {
+    public WriteTask(SelectionKey selectionKey) {
         this.selectionKey = selectionKey;
-        this.hashCode = hashCode;
     }
 
     @Override
     public void execute() {
-        SocketChannel channel = (SocketChannel) selectionKey.channel();
-        if (!selectionKey.attachment().equals("read")) {
+        State state = (State) selectionKey.attachment();
+        if (!state.getOperation().equals("read")) {
             System.out.println("concurrent bug.  RETURN TO TASK QUEUE");
+            return;
         }
+        SocketChannel channel = (SocketChannel) selectionKey.channel();
+
         try {
             //System.out.println("write");
-            ByteBuffer payload = ByteBuffer.wrap(hashCode.getBytes());
+            ByteBuffer payload = ByteBuffer.wrap(state.getHashCode().getBytes());
             payload.rewind();
             channel.write(payload);
-            selectionKey.interestOps(SelectionKey.OP_READ);
-            selectionKey.attach("reading");
+            state.setOperation("reading");
+
         } catch (IOException e) {
             e.printStackTrace();
         }
