@@ -6,27 +6,27 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
-import java.util.Calendar;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.List;
 
 import cs455.scaling.util.Constants;
+import cs455.scaling.util.HashCodeGenerator;
 
 public class Client {
 
     private static String serverHost;
 
-    private final LinkedList<String> hashCodes;
-
     private static int serverPort;
 
     private Selector selector;
 
+    private List<String> hashCodes;
+
     private static int messageRate;
 
     private WriteThread writeThread;
-
-    private long messagesReceived;
 
     public static void main(String[] args) {
         if (args.length != 3) {
@@ -46,7 +46,7 @@ public class Client {
     }
 
     public Client() {
-        hashCodes = new LinkedList<>();
+        hashCodes = Collections.synchronizedList(new ArrayList<>());
         try {
             startClient();
         } catch (IOException | InterruptedException e) {
@@ -61,61 +61,53 @@ public class Client {
         channel.connect(new InetSocketAddress(serverHost, serverPort));
         channel.register(selector, SelectionKey.OP_CONNECT);
 
-        long before = System.currentTimeMillis() / 1000;
+        ByteBuffer buffer = ByteBuffer.allocate(40);
 
         while (true) {
+
             selector.select();
 
             Iterator i = selector.selectedKeys()
                     .iterator();
 
             while (i.hasNext()) {
-                SelectionKey key = (SelectionKey) i.next();
-
+                final SelectionKey key = (SelectionKey) i.next();
                 i.remove();
-                if (key.isConnectable()) {
-                    if (channel.finishConnect()) {
-                        key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-                        writeThread = new WriteThread(channel, messageRate, hashCodes);
-                        new Thread(writeThread).start();
-                        before = System.currentTimeMillis() / 1000;
+
+                synchronized (key) {
+
+                    if (key.isConnectable()) {
+                        if (channel.finishConnect()) {
+                            key.interestOps(SelectionKey.OP_READ);
+                            writeThread = new WriteThread(key, messageRate, hashCodes);
+                            new Thread(writeThread).start();
+                        }
+                    } else if (key.isReadable()) {
+                        buffer.clear();
+                        buffer.rewind();
+
+//                        int read = channel.read(buffer);
+
+                        int read = 0;
+                        while (buffer.hasRemaining() && read != 1) {
+                            read = channel.read(buffer);
+                        }
+
+                        if (read == -1) {
+                            System.out.println("connection closed");
+                        }
+
+                        String hashCode = new String(buffer.array());
+                        //System.out.println(hashCode);
+
+                        //byte[] data = new byte[Constants.BUFFER_SIZE];
+                        //System.arraycopy(buffer.array(), 0, data, 0, Constants.BUFFER_SIZE);
+                        //String hashCode = new String(data);
+
+                        writeThread.incrementMessagesReceived();
                     }
-                } else if (key.isReadable()) {
-                    ByteBuffer buf = ByteBuffer.allocate(Constants.BUFFER_SIZE);
-                    buf.rewind();
-                    int read = channel.read(buf);
-                    byte[] data = new byte[read];
-                    System.arraycopy(buf.array(), 0, data, 0, read);
-                    String hashCode = new String(data);
-                    removeHashCode(hashCode);
-                    messagesReceived++;
-                } else if (key.isWritable()) {
-                    writeThread.setKey(key);
                 }
             }
-
-            long after = System.currentTimeMillis() / 1000;
-            if (after - before == 10) {
-                Calendar cal = Calendar.getInstance();
-                String output = String.format("[%s] Total Sent Count: %s, Total Received Count: %s",
-                        Constants.SIMPLE_DATE_FORMAT.format(cal.getTime()),
-                        writeThread.getMessagesSent(),
-                        messagesReceived);
-                System.out.println(output);
-                before = System.currentTimeMillis() / 1000;
-            }
-        }
-    }
-
-    private void removeHashCode(String hashCode) {
-
-        synchronized (hashCodes) {
-            if(hashCodes.contains(hashCode)) {
-                hashCodes.remove(hashCode);
-            } else {
-                System.out.println("bad hashcode " + hashCode);
-            }
-
         }
     }
 }

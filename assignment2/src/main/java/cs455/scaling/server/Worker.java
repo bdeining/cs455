@@ -22,7 +22,6 @@ public class Worker implements Runnable {
     public void run() {
         while (true) {
             if(getTask() != null) {
-                System.out.println(getTask().getClass());
                 getTask().execute();
                 assignTask(null);
                 threadPoolManager.addWorkerToThreadPool(this);

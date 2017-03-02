@@ -10,10 +10,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.Calendar;
 import java.util.Iterator;
-
-import cs455.scaling.util.Constants;
 
 public class Server {
 
@@ -70,7 +67,8 @@ public class Server {
         serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);
 
         System.out.println("Server started...");
-        long before = System.currentTimeMillis() / 1000;
+
+        new Thread(new Poller(threadPoolManager)).start();
 
         while (true) {
             this.selector.select();
@@ -88,20 +86,9 @@ public class Server {
                 if (key.isAcceptable()) {
                     this.accept(key);
                 } else if (key.isReadable()) {
-                    this.read(key);
                     threadPoolManager.assignTaskIfPossible();
+                    this.read(key);
                 }
-            }
-
-            long after = System.currentTimeMillis() / 1000;
-            if (after - before == 10) {
-                Calendar cal = Calendar.getInstance();
-                String output = String.format("[%s] Total Sent Count: %s, Total Received Count: %s",
-                        Constants.SIMPLE_DATE_FORMAT.format(cal.getTime()),
-                        0,
-                        0);
-                System.out.println(output);
-                before = System.currentTimeMillis() / 1000;
             }
         }
     }

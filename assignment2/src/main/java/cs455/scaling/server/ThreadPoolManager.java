@@ -1,7 +1,5 @@
 package cs455.scaling.server;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -9,7 +7,11 @@ public class ThreadPoolManager {
 
     private final Queue<Worker> threadPool;
 
-    private final Deque<Task> tasks;
+    private final Queue<Task> readTasks;
+
+    private final Queue<Task> writeTasks;
+
+    private Worker worker;
 
     public ThreadPoolManager(int threadPoolSize) {
         threadPool = new LinkedList<>();
@@ -18,13 +20,23 @@ public class ThreadPoolManager {
             threadPool.add(worker);
             new Thread(worker).start();
         }
-        tasks = new ArrayDeque<>();
+        worker = threadPool.poll();
+        readTasks = new LinkedList<>();
+        writeTasks = new LinkedList<>();
     }
 
     public void addTaskToQueue(Task task) {
-        synchronized (tasks) {
-            tasks.add(task);
+
+        if (task instanceof WriteTask) {
+            synchronized (writeTasks) {
+                writeTasks.add(task);
+            }
+        } else {
+            synchronized (readTasks) {
+                readTasks.add(task);
+            }
         }
+
     }
 
     public void addWorkerToThreadPool(Worker worker) {
@@ -35,7 +47,7 @@ public class ThreadPoolManager {
 
     public void assignTaskIfPossible() {
         Task task = getTask();
-        if(task == null) {
+        if (task == null) {
             return;
         }
 
@@ -43,21 +55,31 @@ public class ThreadPoolManager {
             return;
         }
 
+        Worker worker;
         synchronized (threadPool) {
-            Worker worker = threadPool.poll();
-            if (worker != null) {
-                worker.assignTask(task);
-            }
+            worker = threadPool.poll();
+        }
+        if (worker != null) {
+            worker.assignTask(task);
         }
     }
 
+    public int getTaskQueueSize() {
+        return readTasks.size() + writeTasks.size();
+    }
+
     public Task getTask() {
-        if (tasks == null || tasks.size() == 0) {
-            return null;
+        if (writeTasks != null && writeTasks.size() != 0) {
+            synchronized (writeTasks) {
+                return writeTasks.poll();
+            }
         }
 
-        synchronized (tasks) {
-            return tasks.poll();
+        if (readTasks != null && readTasks.size() != 0) {
+            synchronized (readTasks) {
+                return readTasks.poll();
+            }
         }
+        return null;
     }
 }

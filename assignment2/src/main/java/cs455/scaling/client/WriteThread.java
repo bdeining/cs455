@@ -1,50 +1,65 @@
 package cs455.scaling.client;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Formatter;
 import java.util.List;
 import java.util.Random;
 
 import cs455.scaling.util.Constants;
-import cs455.scaling.util.HashCodeGenerator;
 
 public class WriteThread implements Runnable {
     private final List<String> hashCodes;
 
-    private SelectionKey selectionKey;
-
-    private SocketChannel socketChannel;
+    private final SelectionKey selectionKey;
 
     private int messageRate;
 
     private long messagesSent;
 
-    public WriteThread(SocketChannel socketChannel, int messageRate, List<String> hashCodes) {
-        this.messageRate = messageRate;
-        this.socketChannel = socketChannel;
-        this.hashCodes = hashCodes;
-    }
+    private long messagesReceived = 0;
 
-    public void setKey(SelectionKey selectionKey) {
+    public WriteThread(SelectionKey selectionKey, int messageRate, List<String> hashCodes) {
+        this.messageRate = messageRate;
         this.selectionKey = selectionKey;
+        this.hashCodes = hashCodes;
     }
 
     @Override
     public void run() {
+        int count = 0;
         while (true) {
-            if (selectionKey != null && selectionKey.isWritable()) {
-                ByteBuffer buffer = generateMessage();
+
+            ByteBuffer buffer = generateMessage();
+
+            synchronized (selectionKey) {
+                SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
                 try {
                     socketChannel.write(buffer);
-                    messagesSent++;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                buffer.clear();
-                selectionKey = null;
+            }
+
+            count++;
+            messagesSent++;
+
+            if (count == 10) {
+                Calendar cal = Calendar.getInstance();
+                String output = String.format("[%s] Total Sent Count: %s, Total Received Count: %s",
+                        Constants.SIMPLE_DATE_FORMAT.format(cal.getTime()),
+                        messagesSent,
+                        messagesReceived);
+                System.out.println(output);
+                count = 0;
             }
 
             try {
@@ -57,26 +72,30 @@ public class WriteThread implements Runnable {
 
     private ByteBuffer generateMessage() {
         byte[] bytes = new byte[Constants.BUFFER_SIZE];
-        for (int i = 0; i < bytes.length; i++) {
-            bytes[i] = (byte) getRandomInt();
-        }
+        new Random().nextBytes(bytes);
+        return ByteBuffer.wrap(bytes);
+    }
 
+    private String generateHashCodeFromBytes(byte[] data) {
         try {
-            String hashCode = HashCodeGenerator.generateHashCodeFromBytes(bytes);
-            synchronized (hashCodes) {
-                hashCodes.add(hashCode);
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            final byte[] hash = md.digest(data);
+            Formatter formatter = new Formatter();
+            for (byte b : hash) {
+                formatter.format("%02x", b);
             }
-
+            return formatter.toString();
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
 
-        return ByteBuffer.wrap(bytes);
+        // Will not happen
+        return null;
+
     }
 
-    private int getRandomInt() {
-        Random random = new Random();
-        return random.nextInt();
+    public synchronized void incrementMessagesReceived() {
+        messagesReceived++;
     }
 
     public long getMessagesSent() {
