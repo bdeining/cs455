@@ -11,9 +11,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import cs455.scaling.util.Constants;
-import cs455.scaling.util.HashCodeGenerator;
-
 public class Client {
 
     private static String serverHost;
@@ -86,8 +83,6 @@ public class Client {
                         buffer.clear();
                         buffer.rewind();
 
-//                        int read = channel.read(buffer);
-
                         int read = 0;
                         while (buffer.hasRemaining() && read != 1) {
                             read = channel.read(buffer);
@@ -98,11 +93,6 @@ public class Client {
                         }
 
                         String hashCode = new String(buffer.array());
-                        //System.out.println(hashCode);
-
-                        //byte[] data = new byte[Constants.BUFFER_SIZE];
-                        //System.arraycopy(buffer.array(), 0, data, 0, Constants.BUFFER_SIZE);
-                        //String hashCode = new String(data);
 
                         writeThread.incrementMessagesReceived();
                     }
