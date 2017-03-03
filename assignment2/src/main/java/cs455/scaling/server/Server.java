@@ -106,7 +106,9 @@ public class Server {
     }
 
     private void read(SelectionKey key) throws IOException {
-        key.interestOps(SelectionKey.OP_WRITE);
+        synchronized (key) {
+            key.interestOps(SelectionKey.OP_WRITE);
+        }
         Task task = new ReadTask(threadPoolManager, key);
         threadPoolManager.addTaskToQueue(task);
     }

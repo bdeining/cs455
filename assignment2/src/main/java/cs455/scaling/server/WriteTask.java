@@ -20,27 +20,28 @@ public class WriteTask implements Task {
 
     @Override
     public void execute() {
+        synchronized (selectionKey) {
+            if (!selectionKey.isValid()) {
+                System.out.println("channel closed");
+                return;
+            }
 
-        if (!selectionKey.isValid()) {
-            System.out.println("channel closed");
-            return;
+            SocketChannel channel = (SocketChannel) selectionKey.channel();
+
+            if (!channel.isConnected()) {
+                System.out.println("channel closed");
+                return;
+            }
+
+            try {
+                ByteBuffer payload = ByteBuffer.wrap(hashCode.getBytes());
+                payload.rewind();
+                channel.write(payload);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            threadPoolManager.incrementThroughput();
+            selectionKey.interestOps(SelectionKey.OP_READ);
         }
-
-        SocketChannel channel = (SocketChannel) selectionKey.channel();
-
-        if (!channel.isConnected()) {
-            System.out.println("channel closed");
-            return;
-        }
-
-        try {
-            ByteBuffer payload = ByteBuffer.wrap(hashCode.getBytes());
-            payload.rewind();
-            channel.write(payload);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        threadPoolManager.incrementThroughput();
-        selectionKey.interestOps(SelectionKey.OP_READ);
     }
 }

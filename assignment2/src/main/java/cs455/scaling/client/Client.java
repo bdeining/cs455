@@ -104,7 +104,7 @@ public class Client {
                 hashCodes.remove(hashCode);
                 writeThread.incrementMessagesReceived();
             } else {
-                System.out.println("bad hashcode");
+                System.out.println("bad hashcode " + hashCode);
             }
         }
     }

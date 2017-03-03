@@ -26,39 +26,51 @@ public class ReadTask implements Task {
     @Override
     public void execute() {
 
+        synchronized (selectionKey) {
+            if (!selectionKey.isValid()) {
+                System.out.println("channel closed");
+                return;
+            }
 
-        if (!selectionKey.isValid()) {
-            System.out.println("channel closed");
-            return;
+            SocketChannel channel = (SocketChannel) selectionKey.channel();
+
+            if (!channel.isConnected()) {
+                closeChannel(channel);
+                return;
+            }
+
+            ByteBuffer buffer = (ByteBuffer) selectionKey.attachment();
+            if (buffer == null) {
+                buffer = ByteBuffer.allocate(Constants.BUFFER_SIZE);
+                buffer.clear();
+            }
+
+            int read = readChannel(buffer, channel);
+
+            if (read == -1) {
+                closeChannel(channel);
+                return;
+            }
+
+            if (buffer.hasRemaining()) {
+                selectionKey.attach(buffer);
+                threadPoolManager.addTaskToQueue(this);
+                return;
+            }
+
+            selectionKey.attach(null);
+
+            byte[] data = createCopyOfData(buffer);
+            String hashcode = generateHashCode(data);
+            System.out.println("recieved " + hashcode);
+            if (hashcode == null) {
+                return;
+            }
+            assignWriteTask(hashcode);
         }
-
-        SocketChannel channel = (SocketChannel) selectionKey.channel();
-
-        if (!channel.isConnected()) {
-            closeChannel(channel);
-            return;
-        }
-
-        ByteBuffer buffer = ByteBuffer.allocate(Constants.BUFFER_SIZE);
-        buffer.clear();
-
-        int read = readSocketFully(buffer, channel);
-
-        if (read == -1) {
-            closeChannel(channel);
-            return;
-        }
-
-        byte[] data = createCopyOfData(buffer);
-        String hashcode = generateHashCode(data);
-
-        if (hashcode == null) {
-            return;
-        }
-        assignWriteTask(hashcode);
     }
 
-    private int readSocketFully(ByteBuffer byteBuffer, SocketChannel socketChannel) {
+    private int readChannel(ByteBuffer byteBuffer, SocketChannel socketChannel) {
         int read = 0;
         try {
             read = socketChannel.read(byteBuffer);
