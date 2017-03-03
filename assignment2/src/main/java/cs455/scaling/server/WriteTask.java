@@ -17,16 +17,23 @@ public class WriteTask implements Task {
 
     @Override
     public void execute() {
-        State state = (State) selectionKey.attachment();
+
+        if (!selectionKey.isValid()) {
+            System.out.println("channel closed");
+            return;
+        }
+
         SocketChannel channel = (SocketChannel) selectionKey.channel();
+
+        if (!channel.isConnected()) {
+            System.out.println("channel closed");
+            return;
+        }
 
         try {
             ByteBuffer payload = ByteBuffer.wrap(hashCode.getBytes());
             payload.rewind();
-
             channel.write(payload);
-            state.setOperation("reading");
-
         } catch (IOException e) {
             e.printStackTrace();
         }

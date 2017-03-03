@@ -19,7 +19,7 @@ public class Client {
 
     private Selector selector;
 
-    private List<String> hashCodes;
+    private final List<String> hashCodes;
 
     private static int messageRate;
 
@@ -93,11 +93,23 @@ public class Client {
                         }
 
                         String hashCode = new String(buffer.array());
-
-                        writeThread.incrementMessagesReceived();
+                        removeHashCode(hashCode);
                     }
                 }
             }
         }
+    }
+
+    private void removeHashCode(String hashCode) {
+        System.out.println(hashCode);
+        synchronized (hashCodes) {
+            if(hashCodes.contains(hashCode)) {
+                hashCodes.remove(hashCode);
+                writeThread.incrementMessagesReceived();
+            } else {
+                System.out.println("bad hashcode");
+            }
+        }
+
     }
 }

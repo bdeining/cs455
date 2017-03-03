@@ -18,3 +18,10 @@ make
 To Run Make JARs :
 java cs455.scaling.server.Server "50000" "10"
 java cs455.scaling.client.Client "localhost" "50000" "1"
+
+TODO:
+Throughput and active connections
+Performance
+CS machines
+100 clients
+Graceful shutdown recovery

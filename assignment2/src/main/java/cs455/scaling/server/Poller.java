@@ -1,14 +1,19 @@
 package cs455.scaling.server;
 
+import java.nio.channels.SelectionKey;
 import java.util.Calendar;
+import java.util.List;
 
 import cs455.scaling.util.Constants;
 
 public class Poller implements Runnable {
     private ThreadPoolManager threadPoolManager;
 
-    public Poller(ThreadPoolManager threadPoolManager) {
+    private List<SelectionKey> selectionKeyList;
+
+    public Poller(ThreadPoolManager threadPoolManager, List<SelectionKey> selectionKeyList) {
         this.threadPoolManager = threadPoolManager;
+        this.selectionKeyList = selectionKeyList;
     }
 
     @Override
@@ -21,10 +26,10 @@ public class Poller implements Runnable {
             }
 
             Calendar cal = Calendar.getInstance();
-            String output = String.format("[%s] Total Sent Count: %s, Total Received Count: %s",
+            String output = String.format("[%s] Current Server Throughput: %s messages/s, Active Client Connections: %s",
                     Constants.SIMPLE_DATE_FORMAT.format(cal.getTime()),
                     threadPoolManager.getTaskQueueSize(),
-                    0);
+                    selectionKeyList.size());
             System.out.println(output);
 
 

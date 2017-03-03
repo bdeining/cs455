@@ -10,7 +10,9 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 public class Server {
 
@@ -21,6 +23,8 @@ public class Server {
     private Selector selector;
 
     private ThreadPoolManager threadPoolManager;
+
+    private List<SelectionKey> selectionKeys;
 
     private static String inetAddress;
 
@@ -58,6 +62,8 @@ public class Server {
     public void startServer() throws IOException {
         threadPoolManager = new ThreadPoolManager(threadPoolSize);
 
+        selectionKeys = new ArrayList<>();
+
         this.selector = Selector.open();
         ServerSocketChannel serverChannel = ServerSocketChannel.open();
         serverChannel.configureBlocking(false);
@@ -68,7 +74,7 @@ public class Server {
 
         System.out.println("Server started...");
 
-        new Thread(new Poller(threadPoolManager)).start();
+        new Thread(new Poller(threadPoolManager, selectionKeys)).start();
 
         while (true) {
             this.selector.select();
@@ -79,16 +85,20 @@ public class Server {
                 SelectionKey key = (SelectionKey) keys.next();
                 keys.remove();
 
+                threadPoolManager.assignTaskIfPossible();
+
                 if (!key.isValid()) {
+                    System.out.println("bad key");
                     continue;
                 }
 
                 if (key.isAcceptable()) {
+                    selectionKeys.add(key);
                     this.accept(key);
                 } else if (key.isReadable()) {
-                    threadPoolManager.assignTaskIfPossible();
                     this.read(key);
                 }
+
             }
         }
     }

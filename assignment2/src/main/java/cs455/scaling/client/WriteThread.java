@@ -39,6 +39,10 @@ public class WriteThread implements Runnable {
         while (true) {
 
             ByteBuffer buffer = generateMessage();
+            String hashCode = generateHashCodeFromBytes(buffer.array());
+            synchronized (hashCodes) {
+                hashCodes.add(hashCode);
+            }
 
             synchronized (selectionKey) {
                 SocketChannel socketChannel = (SocketChannel) selectionKey.channel();

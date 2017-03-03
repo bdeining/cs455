@@ -25,54 +25,89 @@ public class ReadTask implements Task {
 
     @Override
     public void execute() {
+
+
+        if (!selectionKey.isValid()) {
+            System.out.println("channel closed");
+            return;
+        }
+
         SocketChannel channel = (SocketChannel) selectionKey.channel();
+
+        if (!channel.isConnected()) {
+            System.out.println("channel closed");
+            return;
+        }
 
         ByteBuffer buffer = ByteBuffer.allocate(Constants.BUFFER_SIZE);
         buffer.clear();
+
+        int read = readSocketFully(buffer, channel);
+
+        if (read == -1) {
+            closeChannel(channel);
+            return;
+        }
+
+        byte[] data = createCopyOfData(buffer);
+        String hashcode = generateHashCode(data);
+
+        if (hashcode == null) {
+            return;
+        }
+
+        System.out.println(hashcode);
+        assignWriteTask(hashcode);
+    }
+
+    private int readSocketFully(ByteBuffer byteBuffer, SocketChannel socketChannel) {
+        int read = 0;
         try {
-
-            int read = 0;
-            while (buffer.hasRemaining() && read != 1) {
-                read = channel.read(buffer);
+            while (byteBuffer.hasRemaining() && read != 1) {
+                read = socketChannel.read(byteBuffer);
             }
-
-            if (read == -1) {
-                Socket socket = channel.socket();
-                SocketAddress remoteAddr = socket.getRemoteSocketAddress();
-                System.out.println("Connection closed by client: " + remoteAddr);
-                channel.close();
-                selectionKey.cancel();
-                return;
-            }
-
-            byte[] data = new byte[Constants.BUFFER_SIZE];
-            System.arraycopy(buffer.array(), 0, data, 0, Constants.BUFFER_SIZE);
-            String hashcode = null;
-
-            try {
-                MessageDigest md = MessageDigest.getInstance("SHA-1");
-                final byte[] hash = md.digest(data);
-                Formatter formatter = new Formatter();
-                for (byte b : hash) {
-                    formatter.format("%02x", b);
-                }
-                hashcode = formatter.toString();
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            }
-
-            if (hashcode == null) {
-                return;
-            }
-
-            System.out.println(hashcode);
-            State state = (State) selectionKey.attachment();
-            state.setOperation("read");
-            state.setHashCode(hashcode);
-            Task writeTask = new WriteTask(selectionKey, hashcode);
-            threadPoolManager.addTaskToQueue(writeTask);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return read;
+    }
+
+    private String generateHashCode(byte[] data) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            final byte[] hash = md.digest(data);
+            Formatter formatter = new Formatter();
+            for (byte b : hash) {
+                formatter.format("%02x", b);
+            }
+            return formatter.toString();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private void assignWriteTask(String hashcode) {
+        Task writeTask = new WriteTask(selectionKey, hashcode);
+        threadPoolManager.addTaskToQueue(writeTask);
+    }
+
+    private byte[] createCopyOfData(ByteBuffer byteBuffer) {
+        byte[] data = new byte[Constants.BUFFER_SIZE];
+        System.arraycopy(byteBuffer.array(), 0, data, 0, Constants.BUFFER_SIZE);
+        return data;
+    }
+
+    private void closeChannel(SocketChannel channel) {
+        Socket socket = channel.socket();
+        SocketAddress remoteAddr = socket.getRemoteSocketAddress();
+        System.out.println("Connection closed by client: " + remoteAddr);
+        try {
+            channel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        selectionKey.cancel();
     }
 }
