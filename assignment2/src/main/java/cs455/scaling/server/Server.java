@@ -24,8 +24,6 @@ public class Server {
 
     private ThreadPoolManager threadPoolManager;
 
-    private List<SelectionKey> selectionKeys;
-
     private static String inetAddress;
 
     public static void main(String[] args) {
@@ -62,8 +60,6 @@ public class Server {
     public void startServer() throws IOException {
         threadPoolManager = new ThreadPoolManager(threadPoolSize);
 
-        selectionKeys = new ArrayList<>();
-
         this.selector = Selector.open();
         ServerSocketChannel serverChannel = ServerSocketChannel.open();
         serverChannel.configureBlocking(false);
@@ -74,7 +70,7 @@ public class Server {
 
         System.out.println("Server started...");
 
-        new Thread(new Poller(threadPoolManager, selectionKeys)).start();
+        new Thread(new Poller(threadPoolManager)).start();
 
         while (true) {
             this.selector.select();
@@ -88,17 +84,14 @@ public class Server {
                 threadPoolManager.assignTaskIfPossible();
 
                 if (!key.isValid()) {
-                    System.out.println("bad key");
                     continue;
                 }
 
                 if (key.isAcceptable()) {
-                    selectionKeys.add(key);
                     this.accept(key);
                 } else if (key.isReadable()) {
                     this.read(key);
                 }
-
             }
         }
     }
@@ -110,11 +103,12 @@ public class Server {
         Socket socket = channel.socket();
         SocketAddress remoteAddr = socket.getRemoteSocketAddress();
         System.out.println("Connected to: " + remoteAddr);
-
-        channel.register(this.selector, SelectionKey.OP_READ, new State("reading"));
+        threadPoolManager.addConnection(remoteAddr.toString());
+        channel.register(this.selector, SelectionKey.OP_READ);
     }
 
     private void read(SelectionKey key) throws IOException {
+        key.interestOps(SelectionKey.OP_WRITE);
         Task task = new ReadTask(threadPoolManager, key);
         threadPoolManager.addTaskToQueue(task);
     }

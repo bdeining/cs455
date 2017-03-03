@@ -10,9 +10,12 @@ public class WriteTask implements Task {
 
     private String hashCode;
 
-    public WriteTask(SelectionKey selectionKey, String hashCode) {
+    private ThreadPoolManager threadPoolManager;
+
+    public WriteTask(ThreadPoolManager threadPoolManager, SelectionKey selectionKey, String hashCode) {
         this.selectionKey = selectionKey;
         this.hashCode = hashCode;
+        this.threadPoolManager = threadPoolManager;
     }
 
     @Override
@@ -37,5 +40,7 @@ public class WriteTask implements Task {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        threadPoolManager.incrementThroughput();
+        selectionKey.interestOps(SelectionKey.OP_READ);
     }
 }

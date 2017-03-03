@@ -1,6 +1,9 @@
 package cs455.scaling.server;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 public class ThreadPoolManager {
@@ -11,7 +14,9 @@ public class ThreadPoolManager {
 
     private final Queue<Task> writeTasks;
 
-    private Worker worker;
+    private Integer throughPut = 0;
+
+    private final List<String> selectionKeyList;
 
     public ThreadPoolManager(int threadPoolSize) {
         threadPool = new LinkedList<>();
@@ -20,7 +25,7 @@ public class ThreadPoolManager {
             threadPool.add(worker);
             new Thread(worker).start();
         }
-        worker = threadPool.poll();
+        selectionKeyList = new ArrayList<>();
         readTasks = new LinkedList<>();
         writeTasks = new LinkedList<>();
     }
@@ -81,5 +86,37 @@ public class ThreadPoolManager {
             }
         }
         return null;
+    }
+
+    public void addConnection(String connection) {
+        synchronized (selectionKeyList) {
+            selectionKeyList.add(connection);
+        }
+    }
+
+    public void removeConnection(String connection) {
+        synchronized (selectionKeyList) {
+            selectionKeyList.remove(connection);
+        }
+    }
+
+    public int getConnectionCount() {
+        return selectionKeyList.size();
+    }
+
+    public Integer getThroughput() {
+        return throughPut;
+    }
+
+    public void incrementThroughput() {
+        synchronized (throughPut) {
+            throughPut++;
+        }
+    }
+
+    public void resetThroughput() {
+        synchronized (throughPut) {
+            throughPut = 0;
+        }
     }
 }

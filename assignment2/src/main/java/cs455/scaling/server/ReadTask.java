@@ -35,7 +35,7 @@ public class ReadTask implements Task {
         SocketChannel channel = (SocketChannel) selectionKey.channel();
 
         if (!channel.isConnected()) {
-            System.out.println("channel closed");
+            closeChannel(channel);
             return;
         }
 
@@ -63,9 +63,11 @@ public class ReadTask implements Task {
     private int readSocketFully(ByteBuffer byteBuffer, SocketChannel socketChannel) {
         int read = 0;
         try {
-            while (byteBuffer.hasRemaining() && read != 1) {
+/*            while (byteBuffer.hasRemaining() && read != 1) {
                 read = socketChannel.read(byteBuffer);
-            }
+            }*/
+
+            read = socketChannel.read(byteBuffer);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -88,7 +90,7 @@ public class ReadTask implements Task {
     }
 
     private void assignWriteTask(String hashcode) {
-        Task writeTask = new WriteTask(selectionKey, hashcode);
+        Task writeTask = new WriteTask(threadPoolManager, selectionKey, hashcode);
         threadPoolManager.addTaskToQueue(writeTask);
     }
 
@@ -109,5 +111,6 @@ public class ReadTask implements Task {
         }
 
         selectionKey.cancel();
+        threadPoolManager.removeConnection(remoteAddr.toString());
     }
 }
