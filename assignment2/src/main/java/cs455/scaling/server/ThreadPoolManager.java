@@ -1,6 +1,5 @@
 package cs455.scaling.server;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -105,7 +104,9 @@ public class ThreadPoolManager {
     }
 
     public Integer getThroughput() {
-        return throughPut;
+        synchronized (throughPut) {
+            return throughPut;
+        }
     }
 
     public void incrementThroughput() {

@@ -17,11 +17,9 @@ public class Client {
 
     private static int serverPort;
 
-    private Selector selector;
+    private static int messageRate;
 
     private final List<String> hashCodes;
-
-    private static int messageRate;
 
     private WriteThread writeThread;
 
@@ -52,7 +50,7 @@ public class Client {
     }
 
     private void startClient() throws IOException, InterruptedException {
-        selector = Selector.open();
+        Selector selector = Selector.open();
         SocketChannel channel = SocketChannel.open();
         channel.configureBlocking(false);
         channel.connect(new InetSocketAddress(serverHost, serverPort));
@@ -101,7 +99,6 @@ public class Client {
     }
 
     private void removeHashCode(String hashCode) {
-        System.out.println(hashCode);
         synchronized (hashCodes) {
             if(hashCodes.contains(hashCode)) {
                 hashCodes.remove(hashCode);
@@ -110,6 +107,5 @@ public class Client {
                 System.out.println("bad hashcode");
             }
         }
-
     }
 }

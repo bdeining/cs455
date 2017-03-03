@@ -55,18 +55,12 @@ public class ReadTask implements Task {
         if (hashcode == null) {
             return;
         }
-
-        System.out.println(hashcode);
         assignWriteTask(hashcode);
     }
 
     private int readSocketFully(ByteBuffer byteBuffer, SocketChannel socketChannel) {
         int read = 0;
         try {
-/*            while (byteBuffer.hasRemaining() && read != 1) {
-                read = socketChannel.read(byteBuffer);
-            }*/
-
             read = socketChannel.read(byteBuffer);
         } catch (IOException e) {
             e.printStackTrace();

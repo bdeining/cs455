@@ -22,10 +22,11 @@ public class Poller implements Runnable {
 
             Calendar cal = Calendar.getInstance();
             String output = String.format(
-                    "[%s] Current Server Throughput: %s messages/s, Active Client Connections: %s",
+                    "[%s] Current Server Throughput: %s messages/s, Active Client Connections: %s, Task Queue: %s",
                     Constants.SIMPLE_DATE_FORMAT.format(cal.getTime()),
                     threadPoolManager.getThroughput(),
-                    threadPoolManager.getConnectionCount());
+                    threadPoolManager.getConnectionCount(),
+                    threadPoolManager.getTaskQueueSize());
             System.out.println(output);
             threadPoolManager.resetThroughput();
         }
