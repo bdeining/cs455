@@ -12,4 +12,4 @@ java cs455.scaling.client.Client "localhost" "50000" "1"
 TODO:
 Pass state with bytebuffer - look for race condition - could be on client
 Performance - 100 clients
-CS machines
+CS machines - working so far

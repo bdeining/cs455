@@ -26,6 +26,13 @@ public class WriteTask implements Task {
                 return;
             }
 
+            State state = (State) selectionKey.attachment();
+
+            if (state == null || !state.getOperation().equals("read")) {
+                threadPoolManager.addTaskToQueue(this);
+                return;
+            }
+
             SocketChannel channel = (SocketChannel) selectionKey.channel();
 
             if (!channel.isConnected()) {
@@ -41,7 +48,10 @@ public class WriteTask implements Task {
                 e.printStackTrace();
             }
             threadPoolManager.incrementThroughput();
+
+            state.setOperation("reading");
             selectionKey.interestOps(SelectionKey.OP_READ);
+            selectionKey.selector().wakeup();
         }
     }
 }

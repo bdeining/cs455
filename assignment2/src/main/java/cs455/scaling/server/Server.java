@@ -76,7 +76,7 @@ public class Server {
             Iterator keys = this.selector.selectedKeys()
                     .iterator();
             while (keys.hasNext()) {
-                SelectionKey key = (SelectionKey) keys.next();
+                final SelectionKey key = (SelectionKey) keys.next();
                 keys.remove();
 
                 threadPoolManager.assignTaskIfPossible();
@@ -102,12 +102,13 @@ public class Server {
         SocketAddress remoteAddr = socket.getRemoteSocketAddress();
         System.out.println("Connected to: " + remoteAddr);
         threadPoolManager.addConnection(remoteAddr.toString());
-        channel.register(this.selector, SelectionKey.OP_READ);
+        channel.register(this.selector, SelectionKey.OP_READ, new State("reading"));
     }
 
     private void read(SelectionKey key) throws IOException {
         synchronized (key) {
             key.interestOps(SelectionKey.OP_WRITE);
+            key.selector().wakeup();
         }
         Task task = new ReadTask(threadPoolManager, key);
         threadPoolManager.addTaskToQueue(task);

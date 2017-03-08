@@ -33,37 +33,42 @@ public class ReadTask implements Task {
             }
 
             SocketChannel channel = (SocketChannel) selectionKey.channel();
-
             if (!channel.isConnected()) {
                 closeChannel(channel);
                 return;
             }
 
-            ByteBuffer buffer = (ByteBuffer) selectionKey.attachment();
-            if (buffer == null) {
-                buffer = ByteBuffer.allocate(Constants.BUFFER_SIZE);
-                buffer.clear();
+            State state = (State) selectionKey.attachment();
+            if (!state.getOperation().equals("reading")) {
+                threadPoolManager.addTaskToQueue(this);
+                return;
             }
 
-            int read = readChannel(buffer, channel);
+            ByteBuffer byteBuffer = state.getBytes();
+            if (byteBuffer == null) {
+                byteBuffer = ByteBuffer.allocate(Constants.BUFFER_SIZE);
+                byteBuffer.clear();
+                state.setBytes(byteBuffer);
+            }
+
+            int read = readChannel(byteBuffer, channel);
 
             if (read == -1) {
                 closeChannel(channel);
                 return;
             }
 
-            if (buffer.hasRemaining()) {
-                selectionKey.attach(buffer);
+            if (byteBuffer.hasRemaining()) {
                 threadPoolManager.addTaskToQueue(this);
                 return;
             }
 
-            selectionKey.attach(null);
-
-            byte[] data = createCopyOfData(buffer);
+            state.setBytes(null);
+            state.setOperation("read");
+            byte[] data = createCopyOfData(byteBuffer);
             String hashcode = generateHashCode(data);
-            System.out.println("recieved " + hashcode);
             if (hashcode == null) {
+                System.out.println("null hashcode");
                 return;
             }
             assignWriteTask(hashcode);

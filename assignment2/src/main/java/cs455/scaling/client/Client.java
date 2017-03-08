@@ -56,8 +56,6 @@ public class Client {
         channel.connect(new InetSocketAddress(serverHost, serverPort));
         channel.register(selector, SelectionKey.OP_CONNECT);
 
-        ByteBuffer buffer = ByteBuffer.allocate(40);
-
         while (true) {
 
             selector.select();
@@ -69,29 +67,29 @@ public class Client {
                 final SelectionKey key = (SelectionKey) i.next();
                 i.remove();
 
-                synchronized (key) {
-
-                    if (key.isConnectable()) {
-                        if (channel.finishConnect()) {
-                            key.interestOps(SelectionKey.OP_READ);
-                            writeThread = new WriteThread(key, messageRate, hashCodes);
-                            new Thread(writeThread).start();
-                        }
-                    } else if (key.isReadable()) {
-                        buffer.clear();
-                        buffer.rewind();
-
-                        int read = 0;
-                        while (buffer.hasRemaining() && read != 1) {
-                            read = channel.read(buffer);
-                        }
+                if (key.isConnectable()) {
+                    if (channel.finishConnect()) {
+                        ByteBuffer buffer = ByteBuffer.allocate(40);
+                        channel.register(selector, SelectionKey.OP_READ, buffer);
+                        writeThread = new WriteThread(key, messageRate, hashCodes);
+                        new Thread(writeThread).start();
+                    }
+                } else if (key.isReadable()) {
+                    synchronized (key) {
+                        ByteBuffer buffer = (ByteBuffer) key.attachment();
+                        int read = channel.read(buffer);
 
                         if (read == -1) {
-                            System.out.println("connection closed");
+                            key.cancel();
+                            break;
                         }
 
-                        String hashCode = new String(buffer.array());
-                        removeHashCode(hashCode);
+                        if (!buffer.hasRemaining()) {
+                            String hashCode = new String(buffer.array());
+                            removeHashCode(hashCode);
+                            buffer.clear();
+                            buffer.rewind();
+                        }
                     }
                 }
             }
@@ -100,7 +98,7 @@ public class Client {
 
     private void removeHashCode(String hashCode) {
         synchronized (hashCodes) {
-            if(hashCodes.contains(hashCode)) {
+            if (hashCodes.contains(hashCode)) {
                 hashCodes.remove(hashCode);
                 writeThread.incrementMessagesReceived();
             } else {

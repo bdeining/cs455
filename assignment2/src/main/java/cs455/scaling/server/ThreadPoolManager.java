@@ -9,9 +9,7 @@ public class ThreadPoolManager {
 
     private final Queue<Worker> threadPool;
 
-    private final Queue<Task> readTasks;
-
-    private final Queue<Task> writeTasks;
+    private final Queue<Task> taskQueue;
 
     private Integer throughPut = 0;
 
@@ -25,22 +23,13 @@ public class ThreadPoolManager {
             new Thread(worker).start();
         }
         selectionKeyList = new ArrayList<>();
-        readTasks = new LinkedList<>();
-        writeTasks = new LinkedList<>();
+        taskQueue = new LinkedList<>();
     }
 
     public void addTaskToQueue(Task task) {
-
-        if (task instanceof WriteTask) {
-            synchronized (writeTasks) {
-                writeTasks.add(task);
-            }
-        } else {
-            synchronized (readTasks) {
-                readTasks.add(task);
-            }
+        synchronized (taskQueue) {
+            taskQueue.add(task);
         }
-
     }
 
     public void addWorkerToThreadPool(Worker worker) {
@@ -69,19 +58,13 @@ public class ThreadPoolManager {
     }
 
     public int getTaskQueueSize() {
-        return readTasks.size() + writeTasks.size();
+        return taskQueue.size();
     }
 
     public Task getTask() {
-        if (writeTasks != null && writeTasks.size() != 0) {
-            synchronized (writeTasks) {
-                return writeTasks.poll();
-            }
-        }
-
-        if (readTasks != null && readTasks.size() != 0) {
-            synchronized (readTasks) {
-                return readTasks.poll();
+        if (taskQueue != null && taskQueue.size() != 0) {
+            synchronized (taskQueue) {
+                return taskQueue.poll();
             }
         }
         return null;

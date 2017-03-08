@@ -36,7 +36,6 @@ public class WriteThread implements Runnable {
 
             ByteBuffer buffer = generateMessage();
             String hashCode = generateHashCodeFromBytes(buffer.array());
-            System.out.println("writing " + hashCode);
             synchronized (hashCodes) {
                 hashCodes.add(hashCode);
             }

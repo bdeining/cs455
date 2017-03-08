@@ -1,10 +1,12 @@
 package cs455.scaling.server;
 
+import java.nio.ByteBuffer;
+
 public class State {
 
     private String operation;
 
-    private String hashCode;
+    private ByteBuffer bytes;
 
     public State(String operation) {
         this.operation = operation;
@@ -18,11 +20,12 @@ public class State {
         this.operation = operation;
     }
 
-    public void setHashCode(String hashCode) {
-        this.hashCode = hashCode;
+    public ByteBuffer getBytes() {
+        return bytes;
     }
 
-    public String getHashCode() {
-        return hashCode;
+    public void setBytes(ByteBuffer bytes) {
+        this.bytes = bytes;
     }
+
 }
