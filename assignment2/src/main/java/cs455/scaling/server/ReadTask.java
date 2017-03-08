@@ -21,6 +21,10 @@ public class ReadTask implements Task {
     public ReadTask(ThreadPoolManager threadPoolManager, SelectionKey selectionKey) {
         this.selectionKey = selectionKey;
         this.threadPoolManager = threadPoolManager;
+        synchronized (this.selectionKey) {
+            selectionKey.interestOps(SelectionKey.OP_WRITE);
+            selectionKey.selector().wakeup();
+        }
     }
 
     @Override
@@ -65,6 +69,7 @@ public class ReadTask implements Task {
 
             state.setBytes(null);
             state.setOperation("read");
+            byteBuffer.rewind();
             byte[] data = createCopyOfData(byteBuffer);
             String hashcode = generateHashCode(data);
             if (hashcode == null) {

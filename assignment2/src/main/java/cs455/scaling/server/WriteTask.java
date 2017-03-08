@@ -26,17 +26,17 @@ public class WriteTask implements Task {
                 return;
             }
 
-            State state = (State) selectionKey.attachment();
-
-            if (state == null || !state.getOperation().equals("read")) {
-                threadPoolManager.addTaskToQueue(this);
-                return;
-            }
-
             SocketChannel channel = (SocketChannel) selectionKey.channel();
 
             if (!channel.isConnected()) {
                 System.out.println("channel closed");
+                return;
+            }
+
+            State state = (State) selectionKey.attachment();
+
+            if (!state.getOperation().equals("read")) {
+                threadPoolManager.addTaskToQueue(this);
                 return;
             }
 

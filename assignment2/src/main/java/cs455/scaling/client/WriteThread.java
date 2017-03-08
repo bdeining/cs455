@@ -33,19 +33,22 @@ public class WriteThread implements Runnable {
     @Override
     public void run() {
         while (true) {
-
             ByteBuffer buffer = generateMessage();
+            buffer.rewind();
             String hashCode = generateHashCodeFromBytes(buffer.array());
             synchronized (hashCodes) {
                 hashCodes.add(hashCode);
             }
 
             synchronized (selectionKey) {
+                selectionKey.interestOps(SelectionKey.OP_WRITE);
                 SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
                 try {
                     socketChannel.write(buffer);
                 } catch (IOException e) {
                     e.printStackTrace();
+                } finally {
+                    selectionKey.interestOps(SelectionKey.OP_READ);
                 }
             }
             messagesSent++;
