@@ -41,12 +41,14 @@ public class WriteThread implements Runnable {
             }
 
             synchronized (selectionKey) {
-
+                selectionKey.interestOps(SelectionKey.OP_WRITE);
                 SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
                 try {
                     socketChannel.write(buffer);
                 } catch (IOException e) {
                     e.printStackTrace();
+                } finally {
+                    selectionKey.interestOps(SelectionKey.OP_READ);
                 }
             }
             messagesSent++;

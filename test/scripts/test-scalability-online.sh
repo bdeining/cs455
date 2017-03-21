@@ -21,9 +21,9 @@ How it works:
 - If you want to close Client processes, please refer 'stop-clients.sh' and use it carefully as it kills all java processes.
 COMMENT
 
-CLASSES=/s/bach/e/under/bdeining/assignment2
+CLASSES=<project_root_directory>
 SCRIPT="cd $CLASSES;
-java -cp . cs455.scaling.client.Client 'denver.cs.colostate.edu' '50000' '4' > "
+java -cp . cs455.scaling.client.Client 'denver.cs.colostate.edu' '50000' '1' > "
 
 #$1 is the command-line argument
 for ((j=1; j<=$1; j++));
