@@ -16,22 +16,21 @@ public class Record implements Writable {
 
     }
 
-    public void setLogicalRecordPartNumber(long logicalRecordPartNumber) {
-        this.logicalRecordPartNumber = logicalRecordPartNumber;
-    }
-
     public long getLogicalRecordPartNumber() {
         return logicalRecordPartNumber;
     }
 
-    public void setTotalNumberOfPartsInRecord(long totalNumberOfPartsInRecord) {
-        this.totalNumberOfPartsInRecord = totalNumberOfPartsInRecord;
+    public void setLogicalRecordPartNumber(long logicalRecordPartNumber) {
+        this.logicalRecordPartNumber = logicalRecordPartNumber;
     }
 
     public long getTotalNumberOfPartsInRecord() {
         return totalNumberOfPartsInRecord;
     }
 
+    public void setTotalNumberOfPartsInRecord(long totalNumberOfPartsInRecord) {
+        this.totalNumberOfPartsInRecord = totalNumberOfPartsInRecord;
+    }
 
     @Override
     public void write(DataOutput dataOutput) throws IOException {

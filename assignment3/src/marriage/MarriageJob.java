@@ -10,7 +10,6 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import record.MarriageRecord;
-import record.TenureRecord;
 
 public class MarriageJob {
     public static void main(String[] args) {

@@ -9,14 +9,15 @@ import record.MarriageRecord;
 
 public class MarriageReducer extends Reducer<Text, MarriageRecord, Text, MarriageRecord> {
     @Override
-    protected void reduce(Text key, Iterable<MarriageRecord> values, Context context) throws IOException, InterruptedException {
+    protected void reduce(Text key, Iterable<MarriageRecord> values, Context context)
+            throws IOException, InterruptedException {
         long maleNeverMarried = 0;
         long femaleNeverMarried = 0;
         long population = 0;
         long totalNumberOfPartsInRecord = 0;
         long logicalRecodPartNumber = 0;
 
-        for(MarriageRecord val : values){
+        for (MarriageRecord val : values) {
             maleNeverMarried += val.getMaleNeverMarried();
             femaleNeverMarried += val.getFemaleNeverMarried();
             population += val.getPopulation();
@@ -32,6 +33,5 @@ public class MarriageReducer extends Reducer<Text, MarriageRecord, Text, Marriag
         marriageRecord.setLogicalRecordPartNumber(logicalRecodPartNumber);
         context.write(key, marriageRecord);
     }
-
 
 }

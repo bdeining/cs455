@@ -32,42 +32,44 @@ public class Tenure implements Writable {
 
     private long urban = 0;
 
+    private String medianHousingValue = "";
+
     private String type = "all";
 
     public Tenure() {
 
     }
 
-    public void setType(String type) {
-        this.type = type;
-    }
-
     public String getType() {
         return type;
     }
 
-    public void setPopulation(long population) {
-        this.population = population;
+    public void setType(String type) {
+        this.type = type;
     }
 
     public long getPopulation() {
         return population;
     }
 
-    public void setLogicalRecordPartNumber(long logicalRecordPartNumber) {
-        this.logicalRecordPartNumber = logicalRecordPartNumber;
-    }
-
-    public void setTotalNumberOfPartsInRecord(long totalNumberOfPartsInRecord) {
-        this.totalNumberOfPartsInRecord = totalNumberOfPartsInRecord;
+    public void setPopulation(long population) {
+        this.population = population;
     }
 
     public long getLogicalRecordPartNumber() {
         return logicalRecordPartNumber;
     }
 
+    public void setLogicalRecordPartNumber(long logicalRecordPartNumber) {
+        this.logicalRecordPartNumber = logicalRecordPartNumber;
+    }
+
     public long getTotalNumberOfPartsInRecord() {
         return totalNumberOfPartsInRecord;
+    }
+
+    public void setTotalNumberOfPartsInRecord(long totalNumberOfPartsInRecord) {
+        this.totalNumberOfPartsInRecord = totalNumberOfPartsInRecord;
     }
 
     public long getMaleNeverMarried() {
@@ -86,6 +88,14 @@ public class Tenure implements Writable {
         this.femaleNeverMarried = femaleNeverMarried;
     }
 
+    public String getMedianHousingValue() {
+        return medianHousingValue;
+    }
+
+    public void setMedianHousingValue(String medianHousingValue) {
+        this.medianHousingValue = medianHousingValue;
+    }
+
     public long getRented() {
         return rented;
     }
@@ -102,28 +112,28 @@ public class Tenure implements Writable {
         this.owned = owned;
     }
 
-    public void setHispanic0to18(long hispanic0to18) {
-        this.hispanic0to18 = hispanic0to18;
-    }
-
     public long getHispanic0to18() {
         return hispanic0to18;
     }
 
-    public void setHispanic19to29(long hispanic19to29) {
-        this.hispanic19to29 = hispanic19to29;
+    public void setHispanic0to18(long hispanic0to18) {
+        this.hispanic0to18 = hispanic0to18;
     }
 
     public long getHispanic19to29() {
         return hispanic19to29;
     }
 
-    public void setHispanic30to39(long hispanic30to39) {
-        this.hispanic30to39 = hispanic30to39;
+    public void setHispanic19to29(long hispanic19to29) {
+        this.hispanic19to29 = hispanic19to29;
     }
 
     public long getHispanic30to39() {
         return hispanic30to39;
+    }
+
+    public void setHispanic30to39(long hispanic30to39) {
+        this.hispanic30to39 = hispanic30to39;
     }
 
     public long getRural() {
@@ -145,16 +155,16 @@ public class Tenure implements Writable {
     @Override
     public String toString() {
         switch (type) {
-            case "tenure":
-                return getTenureString();
-            case "marriage":
-                return getMarriageString();
-            case "hispanic":
-                return getHispanicString();
-            case "homes":
-                return getHousingString();
-            default:
-                return "";
+        case "tenure":
+            return getTenureString();
+        case "marriage":
+            return getMarriageString();
+        case "hispanic":
+            return getHispanicString();
+        case "homes":
+            return getHousingString();
+        default:
+            return "";
         }
     }
 
@@ -162,7 +172,11 @@ public class Tenure implements Writable {
         double totalHousing = getOwned() + getRented();
         double ownerPercentage = getOwned() / totalHousing * 100;
         double renterPercentage = getRented() / totalHousing * 100;
-        return String.format("%s,%s,%s,%s", getOwned(), getRented(), ownerPercentage, renterPercentage);
+        return String.format("%s,%s,%s,%s",
+                getOwned(),
+                getRented(),
+                ownerPercentage,
+                renterPercentage);
     }
 
     private String getMarriageString() {
@@ -206,10 +220,7 @@ public class Tenure implements Writable {
             return "";
         }
 
-
-        return String.format("%s,%s",
-                rural,
-                urban);
+        return String.format("%s,%s", rural, urban);
     }
 
     @Override
@@ -232,7 +243,6 @@ public class Tenure implements Writable {
         byte[] bytes = type.getBytes();
         dataOutput.writeInt(bytes.length);
         dataOutput.write(bytes);
-
 
     }
 

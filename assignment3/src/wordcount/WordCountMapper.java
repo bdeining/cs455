@@ -46,6 +46,7 @@ public class WordCountMapper extends Mapper<LongWritable, Text, Text, Tenure> {
                 tenure.setOwned(getOwnerOccupied(unparsedText));
                 tenure.setUrban(getUrbanOccupied(unparsedText));
                 tenure.setRural(getRuralOccupied(unparsedText));
+                tenure.setMedianHousingValue(medianHouseValue(unparsedText));
             }
             tenure.setType(context.getConfiguration()
                     .get("type"));
@@ -224,6 +225,6 @@ public class WordCountMapper extends Mapper<LongWritable, Text, Text, Tenure> {
 
         }
 
-        return strings.get(strings.size()-1);
+        return strings.get(strings.size() - 1);
     }
 }

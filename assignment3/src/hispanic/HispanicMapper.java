@@ -19,7 +19,6 @@ public class HispanicMapper extends Mapper<LongWritable, Text, Text, HispanicRec
         String summaryLevel = RecordParsingUtils.getSummaryLevel(unparsedText);
         if (summaryLevel.equals("100")) {
 
-
             String state = RecordParsingUtils.getState(unparsedText);
             Long logicalRecordPartNumber = RecordParsingUtils.getLogicalRecordPartNumber(
                     unparsedText);
@@ -38,9 +37,7 @@ public class HispanicMapper extends Mapper<LongWritable, Text, Text, HispanicRec
             }
         }
     }
-    /*
-    (a).Percentage of people below 18 years (inclusive) old.
-    /* 3864 - 3972, 4144 - 4252 */
+
     public Long getHispanicBelow18(String unparsedText) {
         Long hispanicBelow18 = 0L;
 
@@ -51,7 +48,7 @@ public class HispanicMapper extends Mapper<LongWritable, Text, Text, HispanicRec
         }
 
         /* Female */
-        for (int i = 4144; i < 4253; i += 9) {
+        for (int i = 4143; i < 4252; i += 9) {
             Long reading = Long.parseLong(unparsedText.substring(i, i + 9));
             hispanicBelow18 += reading;
         }
@@ -59,9 +56,6 @@ public class HispanicMapper extends Mapper<LongWritable, Text, Text, HispanicRec
         return hispanicBelow18;
     }
 
-    /* 3981 - 4017, 4261 - 4298
-    *  (b).Percentage of people between 19 (inclusive) and 29 (inclusive) years old.
-    * */
     public Long getHispanic19to29(String unparsedText) {
         Long hispanic19to29 = 0L;
 
@@ -72,18 +66,13 @@ public class HispanicMapper extends Mapper<LongWritable, Text, Text, HispanicRec
         }
 
         /* Female */
-        for (int i = 4261; i < 4298; i += 9) {
+        for (int i = 4260; i < 4297; i += 9) {
             Long reading = Long.parseLong(unparsedText.substring(i, i + 9));
             hispanic19to29 += reading;
         }
 
         return hispanic19to29;
     }
-
-    /*
-            4026 - 4035
-     *     (c). Percentage of people between 30 (inclusive) and 39 (inclusive) years old.
-     */
 
     public Long getHispanic30to39(String unparsedText) {
         Long hispanic30to39 = 0L;
@@ -95,12 +84,11 @@ public class HispanicMapper extends Mapper<LongWritable, Text, Text, HispanicRec
         }
 
         /* Female */
-        for (int i = 4306; i < 4316; i += 9) {
+        for (int i = 4305; i < 4315; i += 9) {
             Long reading = Long.parseLong(unparsedText.substring(i, i + 9));
             hispanic30to39 += reading;
         }
 
         return hispanic30to39;
     }
-
 }

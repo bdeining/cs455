@@ -19,7 +19,6 @@ public class MarriageMapper extends Mapper<LongWritable, Text, Text, MarriageRec
         String summaryLevel = RecordParsingUtils.getSummaryLevel(unparsedText);
         if (summaryLevel.equals("100")) {
 
-
             String state = RecordParsingUtils.getState(unparsedText);
             Long logicalRecordPartNumber = RecordParsingUtils.getLogicalRecordPartNumber(
                     unparsedText);

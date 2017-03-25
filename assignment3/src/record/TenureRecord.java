@@ -13,20 +13,20 @@ public class TenureRecord extends Record {
 
     }
 
-    public void setRented(long rented) {
-        this.rented = rented;
-    }
-
-    public void setOwned(long owned) {
-        this.owned = owned;
-    }
-
     public long getRented() {
         return rented;
     }
 
+    public void setRented(long rented) {
+        this.rented = rented;
+    }
+
     public long getOwned() {
         return owned;
+    }
+
+    public void setOwned(long owned) {
+        this.owned = owned;
     }
 
     @Override
@@ -52,7 +52,11 @@ public class TenureRecord extends Record {
         double totalHousing = getOwned() + getRented();
         double ownerPercentage = getOwned() / totalHousing * 100;
         double renterPercentage = getRented() / totalHousing * 100;
-        return String.format("%s\t%s\t%s\t%s", getOwned(), getRented(), ownerPercentage, renterPercentage);
+        return String.format("%s\t%s\t%s\t%s",
+                getOwned(),
+                getRented(),
+                ownerPercentage,
+                renterPercentage);
     }
 
 }

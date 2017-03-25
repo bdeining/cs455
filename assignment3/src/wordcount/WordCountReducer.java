@@ -11,7 +11,8 @@ import org.apache.hadoop.mapreduce.Reducer;
  */
 public class WordCountReducer extends Reducer<Text, Tenure, Text, Tenure> {
     @Override
-    protected void reduce(Text key, Iterable<Tenure> values, Context context) throws IOException, InterruptedException {
+    protected void reduce(Text key, Iterable<Tenure> values, Context context)
+            throws IOException, InterruptedException {
         long owned = 0;
         long rented = 0;
         long population = 0;
@@ -29,9 +30,8 @@ public class WordCountReducer extends Reducer<Text, Tenure, Text, Tenure> {
         long urban = 0;
         long rural = 0;
 
-
         // calculate the total count
-        for(Tenure val : values){
+        for (Tenure val : values) {
             owned += val.getOwned();
             rented += val.getRented();
             population += val.getPopulation();

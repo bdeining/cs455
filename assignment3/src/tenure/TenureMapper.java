@@ -19,14 +19,13 @@ public class TenureMapper extends Mapper<LongWritable, Text, Text, TenureRecord>
         String summaryLevel = RecordParsingUtils.getSummaryLevel(unparsedText);
         if (summaryLevel.equals("100")) {
 
-
             String state = RecordParsingUtils.getState(unparsedText);
             Long logicalRecordPartNumber = RecordParsingUtils.getLogicalRecordPartNumber(
                     unparsedText);
             Long totalNumberOfPartsInRecord = RecordParsingUtils.getTotalNumberOfPartsInRecord(
                     unparsedText);
 
-           TenureRecord tenureRecord = new TenureRecord();
+            TenureRecord tenureRecord = new TenureRecord();
 
             if (logicalRecordPartNumber.equals(totalNumberOfPartsInRecord)) {
                 tenureRecord.setRented(getRenterOccupied(unparsedText));

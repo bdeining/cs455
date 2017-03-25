@@ -15,28 +15,28 @@ public class HispanicRecord extends Record {
 
     }
 
-    public void setHispanic0to18(long hispanic0to18) {
-        this.hispanic0to18 = hispanic0to18;
-    }
-
     public long getHispanic0to18() {
         return hispanic0to18;
     }
 
-    public void setHispanic19to29(long hispanic19to29) {
-        this.hispanic19to29 = hispanic19to29;
+    public void setHispanic0to18(long hispanic0to18) {
+        this.hispanic0to18 = hispanic0to18;
     }
 
     public long getHispanic19to29() {
         return hispanic19to29;
     }
 
-    public void setHispanic30to39(long hispanic30to39) {
-        this.hispanic30to39 = hispanic30to39;
+    public void setHispanic19to29(long hispanic19to29) {
+        this.hispanic19to29 = hispanic19to29;
     }
 
     public long getHispanic30to39() {
         return hispanic30to39;
+    }
+
+    public void setHispanic30to39(long hispanic30to39) {
+        this.hispanic30to39 = hispanic30to39;
     }
 
     @Override

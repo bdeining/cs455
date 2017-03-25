@@ -15,28 +15,28 @@ public class MarriageRecord extends Record {
 
     }
 
-    public void setPopulation(long population) {
-        this.population = population;
-    }
-
     public long getPopulation() {
         return population;
     }
 
-    public void setMaleNeverMarried(long maleNeverMarried) {
-        this.maleNeverMarried = maleNeverMarried;
-    }
-
-    public void setFemaleNeverMarried(long femaleNeverMarried) {
-        this.femaleNeverMarried = femaleNeverMarried;
+    public void setPopulation(long population) {
+        this.population = population;
     }
 
     public long getMaleNeverMarried() {
         return maleNeverMarried;
     }
 
+    public void setMaleNeverMarried(long maleNeverMarried) {
+        this.maleNeverMarried = maleNeverMarried;
+    }
+
     public long getFemaleNeverMarried() {
         return femaleNeverMarried;
+    }
+
+    public void setFemaleNeverMarried(long femaleNeverMarried) {
+        this.femaleNeverMarried = femaleNeverMarried;
     }
 
     @Override
