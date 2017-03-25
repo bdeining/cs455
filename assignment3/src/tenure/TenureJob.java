@@ -1,4 +1,4 @@
-package wordcount;
+package tenure;
 
 import java.io.IOException;
 
@@ -9,29 +9,30 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-public class WordCountJob {
+import record.TenureRecord;
+
+public class TenureJob {
     public static void main(String[] args) {
         try {
             Configuration conf = new Configuration();
-            conf.set("type", args[2]);
             // Give the MapRed job a name. You'll see this name in the Yarn webapp.
-            Job job = Job.getInstance(conf, "word count");
+            Job job = Job.getInstance(conf, "tenure");
             // Current class.
-            job.setJarByClass(WordCountJob.class);
+            job.setJarByClass(TenureJob.class);
             // Mapper
-            job.setMapperClass(WordCountMapper.class);
+            job.setMapperClass(TenureMapper.class);
             // Combiner. We use the reducer as the combiner in this case.
-            job.setCombinerClass(WordCountReducer.class);
+            job.setCombinerClass(TenureReducer.class);
             // Reducer
-            job.setReducerClass(WordCountReducer.class);
+            job.setReducerClass(TenureReducer.class);
             // Outputs from the Mapper.
             job.setMapOutputKeyClass(Text.class);
-            job.setMapOutputValueClass(Tenure.class);
+            job.setMapOutputValueClass(TenureRecord.class);
             // Outputs from Reducer. It is sufficient to set only the following two properties
             // if the Mapper and Reducer has same key and value types. It is set separately for
             // elaboration.
             job.setOutputKeyClass(Text.class);
-            job.setOutputValueClass(Tenure.class);
+            job.setOutputValueClass(TenureRecord.class);
             // path to input in HDFS
             FileInputFormat.addInputPath(job, new Path(args[0]));
             // path to output in HDFS

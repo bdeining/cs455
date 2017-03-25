@@ -1,4 +1,4 @@
-package wordcount;
+package marriage;
 
 import java.io.IOException;
 
@@ -9,29 +9,31 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-public class WordCountJob {
+import record.MarriageRecord;
+import record.TenureRecord;
+
+public class MarriageJob {
     public static void main(String[] args) {
         try {
             Configuration conf = new Configuration();
-            conf.set("type", args[2]);
             // Give the MapRed job a name. You'll see this name in the Yarn webapp.
-            Job job = Job.getInstance(conf, "word count");
+            Job job = Job.getInstance(conf, "marriage");
             // Current class.
-            job.setJarByClass(WordCountJob.class);
+            job.setJarByClass(MarriageJob.class);
             // Mapper
-            job.setMapperClass(WordCountMapper.class);
+            job.setMapperClass(MarriageMapper.class);
             // Combiner. We use the reducer as the combiner in this case.
-            job.setCombinerClass(WordCountReducer.class);
+            job.setCombinerClass(MarriageReducer.class);
             // Reducer
-            job.setReducerClass(WordCountReducer.class);
+            job.setReducerClass(MarriageReducer.class);
             // Outputs from the Mapper.
             job.setMapOutputKeyClass(Text.class);
-            job.setMapOutputValueClass(Tenure.class);
+            job.setMapOutputValueClass(MarriageRecord.class);
             // Outputs from Reducer. It is sufficient to set only the following two properties
             // if the Mapper and Reducer has same key and value types. It is set separately for
             // elaboration.
             job.setOutputKeyClass(Text.class);
-            job.setOutputValueClass(Tenure.class);
+            job.setOutputValueClass(MarriageRecord.class);
             // path to input in HDFS
             FileInputFormat.addInputPath(job, new Path(args[0]));
             // path to output in HDFS

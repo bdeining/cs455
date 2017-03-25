@@ -62,4 +62,49 @@ public class TestMapper {
         System.out.println(two / one);
 
     }
+
+    @Test
+    public void test() {
+        int count = 0;
+        for (int i=3864; i<3973; i+=9) {
+            count++;
+        }
+
+        assertThat(count ,is(13));
+
+        count = 0;
+        for (int i=4144; i<4253; i+=9) {
+            count++;
+        }
+
+        assertThat(count ,is(13));
+
+        count = 0;
+        for (int i=3981; i<4018; i+=9) {
+            count++;
+        }
+
+        assertThat(count ,is(5));
+
+        count = 0;
+        for (int i=4261; i<4298; i+=9) {
+            count++;
+        }
+
+        assertThat(count ,is(5));
+
+
+        count = 0;
+        for (int i=4026; i<4036; i+=9) {
+            count++;
+        }
+
+        assertThat(count ,is(2));
+
+    }
+
+    @Test
+    public void test2() {
+        System.out.println(67/2);
+    }
 }
