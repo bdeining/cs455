@@ -8,32 +8,29 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class HousingMedianRecord extends Record {
+public class RentMedianRecord extends Record {
 
-    public static final List<String> VALUE_LIST = Arrays.asList("Less than $15,000",
-            "$15,000 - $19,999",
-            "$20,000 - $24,999",
-            "$25,000 - $29,999",
-            "$30,000 - $34,999",
-            "$35,000 - $39,999",
-            "$40,000 - $44,999",
-            "$45,000 - $49,999",
-            "$50,000 - $59,999",
-            "$60,000 - $74,999",
-            "$75,000 - $99,999",
-            "$100,000 - $124,999",
-            "$125,000 - $149,999",
-            "$150,000 - $174,999",
-            "$175,000 - $199,999",
-            "$200,000 - $249,999",
-            "$250,000 - $299,999",
-            "$300,000 - $399,999",
-            "$400,000 - $499,999",
-            "$500,000 or more");
+    public static final List<String> VALUE_LIST = Arrays.asList("Less than $100",
+            "$100 to $149",
+            "$150 to $199",
+            "$200 to $249",
+            "$250 to $299",
+            "$300 to $349",
+            "$350 to $399",
+            "$400 to $449",
+            "$450 to $499",
+            "$500 to $549",
+            "$550 to $599",
+            "$600 to $649",
+            "$650 to $699",
+            "$700 to $749",
+            "$750 to $999",
+            "$1000 or more",
+            "No cash rent");
 
     private Map<String, Long> map;
 
-    public HousingMedianRecord() {
+    public RentMedianRecord() {
         createEmptyMap();
     }
 
@@ -78,7 +75,6 @@ public class HousingMedianRecord extends Record {
 
     @Override
     public void write(DataOutput dataOutput) throws IOException {
-        super.write(dataOutput);
         for (Long value : map.values()) {
             dataOutput.writeLong(value);
         }
@@ -86,7 +82,6 @@ public class HousingMedianRecord extends Record {
 
     @Override
     public void readFields(DataInput dataInput) throws IOException {
-        super.readFields(dataInput);
         for (String string : map.keySet()) {
             map.put(string, dataInput.readLong());
         }
