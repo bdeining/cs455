@@ -4,10 +4,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import housing.AverageRoomPercentileReducer;
 import record.HousingMedianRecord;
 
 
@@ -80,6 +83,26 @@ public class TestMapper {
         double percentage = elderlyPopulation / totalPopulation * 100;
 
         System.out.println(percentage);
+
+    }
+
+    @Test
+    public void testHouseRoomPercentage() {
+
+        //long[] houseRoom = {16178,20740,29911,46497,43352,30541,19767,12801,12821};
+        long[] houseRoom = {10560,28870,87742,186260,240665,195648,127018,86260,81089};
+        long result = new AverageRoomPercentileReducer().getAverage(houseRoom);
+        System.out.println(result);
+    }
+
+    @Test
+    public void testPercentile() {
+        List<Long> longList = new ArrayList<>();
+        for (int i=1; i<101; i++) {
+            longList.add((long)i);
+        }
+        long percentile = new AverageRoomPercentileReducer().find95thPercentile(longList);
+        System.out.println(percentile);
 
     }
 
