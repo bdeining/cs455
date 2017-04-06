@@ -4,3 +4,5 @@ target/
 *.DS_Store
 assignment1/cs455
 assignment2/cs455
+assignment3/build
+assignment3/dist
