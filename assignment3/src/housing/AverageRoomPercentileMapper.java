@@ -38,8 +38,7 @@ public class AverageRoomPercentileMapper extends Mapper<LongWritable, Text, Text
     }
 
     private long[] getRoomCounts(String unparsedText) {
-
-        long[] roomSizes = new long[9];
+        long[] roomSizes = new long[AverageRoomRecord.NUM_ROOMS];
 
         int count = 0;
         for (int i = 2388; i < 2461; i += 9) {
@@ -49,6 +48,5 @@ public class AverageRoomPercentileMapper extends Mapper<LongWritable, Text, Text
         }
 
         return roomSizes;
-
     }
 }

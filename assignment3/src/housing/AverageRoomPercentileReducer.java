@@ -10,8 +10,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 
 import record.AverageRoomRecord;
 
-public class AverageRoomPercentileReducer
-        extends Reducer<Text, AverageRoomRecord, Text, Text> {
+public class AverageRoomPercentileReducer extends Reducer<Text, AverageRoomRecord, Text, Text> {
 
     private long percent;
 
@@ -37,19 +36,19 @@ public class AverageRoomPercentileReducer
     public long getAverage(long[] roomCounts) {
         long totalHouses = 0;
         long totalRooms = 0;
-        for (int i=0; i<roomCounts.length; i++) {
+        for (int i = 0; i < roomCounts.length; i++) {
             long numberOfHousesWithSize = roomCounts[i];
             totalHouses += numberOfHousesWithSize;
-            for (int c=0; c<numberOfHousesWithSize; c++) {
-                totalRooms += i+1;
+            for (int c = 0; c < numberOfHousesWithSize; c++) {
+                totalRooms += i + 1;
             }
         }
         return totalRooms / totalHouses;
     }
 
     public long find95thPercentile(List<Long> averages) {
-        double roomCount95thPercentile = averages.size() * 0.95-1;
-        int index = (int)roomCount95thPercentile;
+        double roomCount95thPercentile = averages.size() * 0.95 - 1;
+        int index = (int) roomCount95thPercentile;
         return averages.get(index);
     }
 }

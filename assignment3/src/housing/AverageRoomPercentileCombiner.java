@@ -31,10 +31,9 @@ public class AverageRoomPercentileCombiner
 
     private void combineCounts(AverageRoomRecord averageRoomRecord, long[] roomCountToUpdate) {
         long[] roomCounts = averageRoomRecord.getRoomCounts();
-        for (int i =0; i<9; i++) {
+        for (int i =0; i<AverageRoomRecord.NUM_ROOMS; i++) {
             roomCounts[i] += roomCountToUpdate[i];
         }
-
         averageRoomRecord.setRoomCounts(roomCounts);
     }
 }
