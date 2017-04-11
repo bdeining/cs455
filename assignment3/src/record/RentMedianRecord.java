@@ -27,8 +27,7 @@ public class RentMedianRecord implements Writable {
             "$650 to $699",
             "$700 to $749",
             "$750 to $999",
-            "$1000 or more",
-            "No cash rent");
+            "$1000 or more");
 
     private Map<String, Long> map;
 
@@ -66,10 +65,10 @@ public class RentMedianRecord implements Writable {
         long result = 0;
 
         for (Map.Entry<String, Long> entry : map.entrySet()) {
-            result += entry.getValue();
-            if (result >= median) {
+            if (result + entry.getValue() >=  median) {
                 return entry.getKey();
             }
+            result += entry.getValue();
         }
 
         return VALUE_LIST.get(VALUE_LIST.size() - 1);

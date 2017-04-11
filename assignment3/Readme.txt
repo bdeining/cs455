@@ -1,4 +1,6 @@
-TODO : Remove ’No cash rent’ Q6 and reassess
+TODO : Refactor common code
+        Q6 off
+
 
 Question 9 :
 
