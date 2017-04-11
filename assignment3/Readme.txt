@@ -6,4 +6,8 @@ Question 9 :
     related to the single population.
 
 
+To Build:
+    `ant` (jar located in dist/assignment4.jar)
+
+
 $HADOOP_HOME/bin/hadoop jar assignment4.jar <job> <input_dir> <output_dir>

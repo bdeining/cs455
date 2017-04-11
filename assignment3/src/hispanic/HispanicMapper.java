@@ -28,65 +28,61 @@ public class HispanicMapper extends Mapper<LongWritable, Text, Text, HispanicRec
             HispanicRecord hispanicRecord = new HispanicRecord();
 
             if (!logicalRecordPartNumber.equals(totalNumberOfPartsInRecord)) {
-                hispanicRecord.setHispanic0to18(getHispanicBelow18(unparsedText));
-                hispanicRecord.setHispanic19to29(getHispanic19to29(unparsedText));
-                hispanicRecord.setHispanic30to39(getHispanic30to39(unparsedText));
+                hispanicRecord.setMaleHispanic0to18(getMaleHispanicBelow18(unparsedText));
+                hispanicRecord.setFemaleHispanic0to18(getFemaleHispanicBelow18(unparsedText));
+
+                hispanicRecord.setMaleHispanic19to29(getMaleHispanic19to29(unparsedText));
+                hispanicRecord.setFemaleHispanic19to29(getFemaleHispanic19to29(unparsedText));
+
+                hispanicRecord.setMaleHispanic30to39(getMaleHispanic30to39(unparsedText));
+                hispanicRecord.setFemaleHispanic30to39(getFemaleHispanic30to39(unparsedText));
+
+                hispanicRecord.setTotalMaleHispanicPopulation(getTotalMalePopulation(unparsedText));
+                hispanicRecord.setTotalFemaleHispanicPopulation(getTotalFemalePopulation(unparsedText));
                 context.write(new Text(state), hispanicRecord);
             }
         }
     }
 
-    public Long getHispanicBelow18(String unparsedText) {
-        Long hispanicBelow18 = 0L;
-
-        /* Male */
-        for (int i = 3864; i < 3973; i += 9) {
-            Long reading = Long.parseLong(unparsedText.substring(i, i + 9));
-            hispanicBelow18 += reading;
-        }
-
-        /* Female */
-        for (int i = 4143; i < 4252; i += 9) {
-            Long reading = Long.parseLong(unparsedText.substring(i, i + 9));
-            hispanicBelow18 += reading;
-        }
-
-        return hispanicBelow18;
+    public Long getMaleHispanicBelow18(String unparsedText) {
+        return parseText(3864, 3973, unparsedText);
     }
 
-    public Long getHispanic19to29(String unparsedText) {
-        Long hispanic19to29 = 0L;
-
-        /* Male */
-        for (int i = 3981; i < 4018; i += 9) {
-            Long reading = Long.parseLong(unparsedText.substring(i, i + 9));
-            hispanic19to29 += reading;
-        }
-
-        /* Female */
-        for (int i = 4260; i < 4297; i += 9) {
-            Long reading = Long.parseLong(unparsedText.substring(i, i + 9));
-            hispanic19to29 += reading;
-        }
-
-        return hispanic19to29;
+    public Long getFemaleHispanicBelow18(String unparsedText) {
+        return parseText(4143, 4252, unparsedText);
     }
 
-    public Long getHispanic30to39(String unparsedText) {
-        Long hispanic30to39 = 0L;
+    public Long getMaleHispanic19to29(String unparsedText) {
+        return parseText(3981, 4018, unparsedText);
+    }
 
-        /* Male */
-        for (int i = 4026; i < 4036; i += 9) {
+    public Long getFemaleHispanic19to29(String unparsedText) {
+        return parseText(4260, 4297, unparsedText);
+    }
+
+    public Long getMaleHispanic30to39(String unparsedText) {
+        return parseText(4026, 4036, unparsedText);
+    }
+
+    public Long getFemaleHispanic30to39(String unparsedText) {
+        return parseText(4305, 4315, unparsedText);
+    }
+
+    public long getTotalMalePopulation(String unparsedText) {
+        return parseText(3864, 4135, unparsedText);
+    }
+
+    public long getTotalFemalePopulation(String unparsedText) {
+        return parseText(4143, 4414, unparsedText);
+    }
+
+    private long parseText(int start, int end, String unparsedText) {
+        long result = 0L;
+        for (int i = start; i < end; i += 9) {
             Long reading = Long.parseLong(unparsedText.substring(i, i + 9));
-            hispanic30to39 += reading;
+            result += reading;
         }
 
-        /* Female */
-        for (int i = 4305; i < 4315; i += 9) {
-            Long reading = Long.parseLong(unparsedText.substring(i, i + 9));
-            hispanic30to39 += reading;
-        }
-
-        return hispanic30to39;
+        return result;
     }
 }
