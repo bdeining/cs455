@@ -15,37 +15,22 @@ public class MarriageJob {
     public static void main(String[] args) {
         try {
             Configuration conf = new Configuration();
-            // Give the MapRed job a name. You'll see this name in the Yarn webapp.
-            Job job = Job.getInstance(conf, "marriage");
-            // Current class.
+            Job job = Job.getInstance(conf, "never married");
             job.setJarByClass(MarriageJob.class);
-            // Mapper
             job.setMapperClass(MarriageMapper.class);
-            // Combiner. We use the reducer as the combiner in this case.
             job.setCombinerClass(MarriageReducer.class);
-            // Reducer
             job.setReducerClass(MarriageReducer.class);
-            // Outputs from the Mapper.
             job.setMapOutputKeyClass(Text.class);
             job.setMapOutputValueClass(MarriageRecord.class);
-            // Outputs from Reducer. It is sufficient to set only the following two properties
-            // if the Mapper and Reducer has same key and value types. It is set separately for
-            // elaboration.
             job.setOutputKeyClass(Text.class);
             job.setOutputValueClass(MarriageRecord.class);
-            // path to input in HDFS
+
             FileInputFormat.addInputPath(job, new Path(args[0]));
-            // path to output in HDFS
             FileOutputFormat.setOutputPath(job, new Path(args[1]));
-            // Block until the job is completed.
+
             System.exit(job.waitForCompletion(true) ? 0 : 1);
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
-        } catch (InterruptedException e) {
-            System.err.println(e.getMessage());
-        } catch (ClassNotFoundException e) {
+        } catch (IOException | InterruptedException | ClassNotFoundException e) {
             System.err.println(e.getMessage());
         }
-
     }
 }

@@ -19,7 +19,7 @@ public class RentMedianMapper extends Mapper<LongWritable, Text, Text, RentMedia
 
         String unparsedText = value.toString();
         String summaryLevel = RecordParsingUtils.getSummaryLevel(unparsedText);
-        if (summaryLevel.equals("100")) {
+        if (summaryLevel.equals(RecordParsingUtils.SUMMARY_LEVEL)) {
 
             String state = RecordParsingUtils.getState(unparsedText);
             Long logicalRecordPartNumber = RecordParsingUtils.getLogicalRecordPartNumber(
@@ -31,8 +31,6 @@ public class RentMedianMapper extends Mapper<LongWritable, Text, Text, RentMedia
 
             if (logicalRecordPartNumber.equals(totalNumberOfPartsInRecord)) {
                 rentMedianRecord.setMap(getHousingValues(unparsedText));
-                rentMedianRecord.setLogicalRecordPartNumber(logicalRecordPartNumber);
-                rentMedianRecord.setTotalNumberOfPartsInRecord(totalNumberOfPartsInRecord);
                 context.write(new Text(state), rentMedianRecord);
             }
         }

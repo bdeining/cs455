@@ -2,17 +2,14 @@ package util;
 
 public class RecordParsingUtils {
 
+    public static final String SUMMARY_LEVEL = "100";
+
     public static String getState(String unparsedText) {
         return unparsedText.substring(8, 10);
     }
 
     public static String getSummaryLevel(String unparsedText) {
         return unparsedText.substring(10, 13);
-    }
-
-    public static Long getLogicalRecordNumber(String unparsedText) {
-        Long logicalRecordNumber = Long.parseLong(unparsedText.substring(18, 24));
-        return logicalRecordNumber;
     }
 
     public static Long getLogicalRecordPartNumber(String unparsedText) {

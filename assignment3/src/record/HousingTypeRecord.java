@@ -4,7 +4,9 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-public class HousingTypeRecord extends Record {
+import org.apache.hadoop.io.Writable;
+
+public class HousingTypeRecord implements Writable {
 
     private long rural = 0;
 

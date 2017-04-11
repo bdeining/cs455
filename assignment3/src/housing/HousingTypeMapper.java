@@ -17,7 +17,7 @@ public class HousingTypeMapper extends Mapper<LongWritable, Text, Text, HousingT
 
         String unparsedText = value.toString();
         String summaryLevel = RecordParsingUtils.getSummaryLevel(unparsedText);
-        if (summaryLevel.equals("100")) {
+        if (summaryLevel.equals(RecordParsingUtils.SUMMARY_LEVEL)) {
 
             String state = RecordParsingUtils.getState(unparsedText);
             Long logicalRecordPartNumber = RecordParsingUtils.getLogicalRecordPartNumber(
@@ -30,9 +30,6 @@ public class HousingTypeMapper extends Mapper<LongWritable, Text, Text, HousingT
             if (logicalRecordPartNumber.equals(totalNumberOfPartsInRecord)) {
                 housingTypeRecord.setRural(getRuralOccupied(unparsedText));
                 housingTypeRecord.setUrban(getUrbanOccupied(unparsedText));
-
-                housingTypeRecord.setLogicalRecordPartNumber(logicalRecordPartNumber);
-                housingTypeRecord.setTotalNumberOfPartsInRecord(totalNumberOfPartsInRecord);
                 context.write(new Text(state), housingTypeRecord);
             }
         }

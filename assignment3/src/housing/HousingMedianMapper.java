@@ -19,7 +19,7 @@ public class HousingMedianMapper extends Mapper<LongWritable, Text, Text, Housin
 
         String unparsedText = value.toString();
         String summaryLevel = RecordParsingUtils.getSummaryLevel(unparsedText);
-        if (summaryLevel.equals("100")) {
+        if (summaryLevel.equals(RecordParsingUtils.SUMMARY_LEVEL)) {
 
             String state = RecordParsingUtils.getState(unparsedText);
             Long logicalRecordPartNumber = RecordParsingUtils.getLogicalRecordPartNumber(
@@ -31,8 +31,6 @@ public class HousingMedianMapper extends Mapper<LongWritable, Text, Text, Housin
 
             if (logicalRecordPartNumber.equals(totalNumberOfPartsInRecord)) {
                 housingMedianRecord.setMap(getHousingValues(unparsedText));
-                housingMedianRecord.setLogicalRecordPartNumber(logicalRecordPartNumber);
-                housingMedianRecord.setTotalNumberOfPartsInRecord(totalNumberOfPartsInRecord);
                 context.write(new Text(state), housingMedianRecord);
             }
         }

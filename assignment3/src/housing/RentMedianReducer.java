@@ -13,17 +13,10 @@ public class RentMedianReducer extends Reducer<Text, RentMedianRecord, Text, Ren
     protected void reduce(Text key, Iterable<RentMedianRecord> values, Context context)
             throws IOException, InterruptedException {
         RentMedianRecord rentMedianRecord = new RentMedianRecord();
-        long totalNumberOfPartsInRecord = 0;
-        long logicalRecodPartNumber = 0;
 
         for (RentMedianRecord val : values) {
             combineMap(rentMedianRecord, val.getMap());
-            totalNumberOfPartsInRecord = val.getTotalNumberOfPartsInRecord();
-            logicalRecodPartNumber = val.getLogicalRecordPartNumber();
         }
-
-        rentMedianRecord.setTotalNumberOfPartsInRecord(totalNumberOfPartsInRecord);
-        rentMedianRecord.setLogicalRecordPartNumber(logicalRecodPartNumber);
         context.write(key, rentMedianRecord);
     }
 

@@ -8,7 +8,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class RentMedianRecord extends Record {
+import org.apache.hadoop.io.Writable;
+
+public class RentMedianRecord implements Writable {
 
     public static final List<String> VALUE_LIST = Arrays.asList("Less than $100",
             "$100 to $149",

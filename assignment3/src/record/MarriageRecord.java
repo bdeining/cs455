@@ -4,7 +4,9 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-public class MarriageRecord extends Record {
+import org.apache.hadoop.io.Writable;
+
+public class MarriageRecord implements Writable {
     private long maleNeverMarried = 0;
 
     private long femaleNeverMarried = 0;
@@ -41,7 +43,6 @@ public class MarriageRecord extends Record {
 
     @Override
     public void write(DataOutput dataOutput) throws IOException {
-        super.write(dataOutput);
         dataOutput.writeLong(maleNeverMarried);
         dataOutput.writeLong(femaleNeverMarried);
         dataOutput.writeLong(population);
@@ -49,7 +50,6 @@ public class MarriageRecord extends Record {
 
     @Override
     public void readFields(DataInput dataInput) throws IOException {
-        super.readFields(dataInput);
         maleNeverMarried = dataInput.readLong();
         femaleNeverMarried = dataInput.readLong();
         population = dataInput.readLong();
@@ -69,7 +69,8 @@ public class MarriageRecord extends Record {
         double maleNeverMarriedPercentage = getMaleNeverMarried() / population * 100;
         double femaleNeverMarriedPercentage = getFemaleNeverMarried() / population * 100;
 
-        return String.format("%s\t%s\t%s\t%s",
+        return String.format("%s\t%s\t%s\t%s\t%s",
+                getPopulation(),
                 getMaleNeverMarried(),
                 getFemaleNeverMarried(),
                 maleNeverMarriedPercentage,

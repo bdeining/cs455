@@ -13,21 +13,15 @@ public class HousingTypeReducer extends Reducer<Text, HousingTypeRecord, Text, H
             throws IOException, InterruptedException {
         long rural = 0;
         long urban = 0;
-        long totalNumberOfPartsInRecord = 0;
-        long logicalRecodPartNumber = 0;
 
         for (HousingTypeRecord val : values) {
             rural += val.getRural();
             urban += val.getUrban();
-            totalNumberOfPartsInRecord = val.getTotalNumberOfPartsInRecord();
-            logicalRecodPartNumber = val.getLogicalRecordPartNumber();
         }
 
         HousingTypeRecord housingTypeRecord = new HousingTypeRecord();
         housingTypeRecord.setRural(rural);
         housingTypeRecord.setUrban(urban);
-        housingTypeRecord.setTotalNumberOfPartsInRecord(totalNumberOfPartsInRecord);
-        housingTypeRecord.setLogicalRecordPartNumber(logicalRecodPartNumber);
         context.write(key, housingTypeRecord);
     }
 

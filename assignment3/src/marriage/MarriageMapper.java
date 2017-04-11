@@ -17,7 +17,7 @@ public class MarriageMapper extends Mapper<LongWritable, Text, Text, MarriageRec
 
         String unparsedText = value.toString();
         String summaryLevel = RecordParsingUtils.getSummaryLevel(unparsedText);
-        if (summaryLevel.equals("100")) {
+        if (summaryLevel.equals(RecordParsingUtils.SUMMARY_LEVEL)) {
 
             String state = RecordParsingUtils.getState(unparsedText);
             Long logicalRecordPartNumber = RecordParsingUtils.getLogicalRecordPartNumber(
@@ -31,8 +31,6 @@ public class MarriageMapper extends Mapper<LongWritable, Text, Text, MarriageRec
                 marriageRecord.setMaleNeverMarried(getMaleNeverMarried(unparsedText));
                 marriageRecord.setFemaleNeverMarried(getFemaleNeverMarried(unparsedText));
                 marriageRecord.setPopulation(getPopulation(unparsedText));
-                marriageRecord.setLogicalRecordPartNumber(logicalRecordPartNumber);
-                marriageRecord.setTotalNumberOfPartsInRecord(totalNumberOfPartsInRecord);
                 context.write(new Text(state), marriageRecord);
             }
         }

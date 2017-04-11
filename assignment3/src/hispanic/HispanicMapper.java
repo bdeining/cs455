@@ -17,7 +17,7 @@ public class HispanicMapper extends Mapper<LongWritable, Text, Text, HispanicRec
 
         String unparsedText = value.toString();
         String summaryLevel = RecordParsingUtils.getSummaryLevel(unparsedText);
-        if (summaryLevel.equals("100")) {
+        if (summaryLevel.equals(RecordParsingUtils.SUMMARY_LEVEL)) {
 
             String state = RecordParsingUtils.getState(unparsedText);
             Long logicalRecordPartNumber = RecordParsingUtils.getLogicalRecordPartNumber(
@@ -31,8 +31,6 @@ public class HispanicMapper extends Mapper<LongWritable, Text, Text, HispanicRec
                 hispanicRecord.setHispanic0to18(getHispanicBelow18(unparsedText));
                 hispanicRecord.setHispanic19to29(getHispanic19to29(unparsedText));
                 hispanicRecord.setHispanic30to39(getHispanic30to39(unparsedText));
-                hispanicRecord.setLogicalRecordPartNumber(logicalRecordPartNumber);
-                hispanicRecord.setTotalNumberOfPartsInRecord(totalNumberOfPartsInRecord);
                 context.write(new Text(state), hispanicRecord);
             }
         }

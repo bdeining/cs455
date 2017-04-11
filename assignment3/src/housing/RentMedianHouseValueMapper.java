@@ -1,18 +1,16 @@
 package housing;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
 import record.RentMedianHouseValueRecord;
-import record.RentMedianRecord;
 import util.RecordParsingUtils;
 
-public class RentMedianHouseValueMapper extends Mapper<LongWritable, Text, Text, RentMedianHouseValueRecord> {
+public class RentMedianHouseValueMapper
+        extends Mapper<LongWritable, Text, Text, RentMedianHouseValueRecord> {
 
     @Override
     protected void map(LongWritable key, Text value, Context context)
@@ -20,7 +18,7 @@ public class RentMedianHouseValueMapper extends Mapper<LongWritable, Text, Text,
 
         String unparsedText = value.toString();
         String summaryLevel = RecordParsingUtils.getSummaryLevel(unparsedText);
-        if (summaryLevel.equals("100")) {
+        if (summaryLevel.equals(RecordParsingUtils.SUMMARY_LEVEL)) {
 
             String state = RecordParsingUtils.getState(unparsedText);
             Long logicalRecordPartNumber = RecordParsingUtils.getLogicalRecordPartNumber(
@@ -28,14 +26,13 @@ public class RentMedianHouseValueMapper extends Mapper<LongWritable, Text, Text,
             Long totalNumberOfPartsInRecord = RecordParsingUtils.getTotalNumberOfPartsInRecord(
                     unparsedText);
 
-            RentMedianHouseValueRecord rentMedianHouseValueRecord = new RentMedianHouseValueRecord();
+            RentMedianHouseValueRecord rentMedianHouseValueRecord =
+                    new RentMedianHouseValueRecord();
 
             if (!logicalRecordPartNumber.equals(totalNumberOfPartsInRecord)) {
                 rentMedianHouseValueRecord.setUnmarriedPopulation(getUnmarriedPopulation(
                         unparsedText));
                 rentMedianHouseValueRecord.setRentTenure(getRenterOccupied(unparsedText));
-                rentMedianHouseValueRecord.setLogicalRecordPartNumber(logicalRecordPartNumber);
-                rentMedianHouseValueRecord.setTotalNumberOfPartsInRecord(totalNumberOfPartsInRecord);
                 context.write(new Text(state), rentMedianHouseValueRecord);
             }
         }

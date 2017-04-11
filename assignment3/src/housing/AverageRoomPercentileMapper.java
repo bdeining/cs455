@@ -7,10 +7,10 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
 import record.AverageRoomRecord;
-import record.HousingMedianRecord;
 import util.RecordParsingUtils;
 
-public class AverageRoomPercentileMapper extends Mapper<LongWritable, Text, Text, AverageRoomRecord> {
+public class AverageRoomPercentileMapper
+        extends Mapper<LongWritable, Text, Text, AverageRoomRecord> {
 
     @Override
     protected void map(LongWritable key, Text value, Context context)
@@ -18,7 +18,7 @@ public class AverageRoomPercentileMapper extends Mapper<LongWritable, Text, Text
 
         String unparsedText = value.toString();
         String summaryLevel = RecordParsingUtils.getSummaryLevel(unparsedText);
-        if (summaryLevel.equals("100")) {
+        if (summaryLevel.equals(RecordParsingUtils.SUMMARY_LEVEL)) {
 
             String state = RecordParsingUtils.getState(unparsedText);
             Long logicalRecordPartNumber = RecordParsingUtils.getLogicalRecordPartNumber(
@@ -30,8 +30,6 @@ public class AverageRoomPercentileMapper extends Mapper<LongWritable, Text, Text
 
             if (logicalRecordPartNumber.equals(totalNumberOfPartsInRecord)) {
                 averageRoomRecord.setRoomCounts(getRoomCounts(unparsedText));
-                averageRoomRecord.setLogicalRecordPartNumber(logicalRecordPartNumber);
-                averageRoomRecord.setTotalNumberOfPartsInRecord(totalNumberOfPartsInRecord);
                 context.write(new Text(state), averageRoomRecord);
             }
         }

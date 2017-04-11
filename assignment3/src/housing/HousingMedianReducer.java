@@ -14,17 +14,10 @@ public class HousingMedianReducer
     protected void reduce(Text key, Iterable<HousingMedianRecord> values, Context context)
             throws IOException, InterruptedException {
         HousingMedianRecord housingMedianRecord = new HousingMedianRecord();
-        long totalNumberOfPartsInRecord = 0;
-        long logicalRecodPartNumber = 0;
 
         for (HousingMedianRecord val : values) {
             combineMap(housingMedianRecord, val.getMap());
-            totalNumberOfPartsInRecord = val.getTotalNumberOfPartsInRecord();
-            logicalRecodPartNumber = val.getLogicalRecordPartNumber();
         }
-
-        housingMedianRecord.setTotalNumberOfPartsInRecord(totalNumberOfPartsInRecord);
-        housingMedianRecord.setLogicalRecordPartNumber(logicalRecodPartNumber);
         context.write(key, housingMedianRecord);
     }
 

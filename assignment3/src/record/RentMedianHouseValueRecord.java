@@ -4,7 +4,9 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-public class RentMedianHouseValueRecord extends Record {
+import org.apache.hadoop.io.Writable;
+
+public class RentMedianHouseValueRecord implements Writable {
 
     private long unmarriedPopulation;
 
@@ -14,32 +16,31 @@ public class RentMedianHouseValueRecord extends Record {
 
     }
 
-    public void setUnmarriedPopulation(long unmarriedPopulation) {
-        this.unmarriedPopulation = unmarriedPopulation;
-    }
-
     public long getUnmarriedPopulation() {
         return unmarriedPopulation;
     }
 
-    public void setRentTenure(long rentTenure) {
-        this.rentTenure = rentTenure;
+    public void setUnmarriedPopulation(long unmarriedPopulation) {
+        this.unmarriedPopulation = unmarriedPopulation;
     }
 
     public long getRentTenure() {
         return rentTenure;
     }
 
+    public void setRentTenure(long rentTenure) {
+        this.rentTenure = rentTenure;
+    }
+
     @Override
     public void write(DataOutput dataOutput) throws IOException {
-        super.write(dataOutput);
+        ;
         dataOutput.writeLong(rentTenure);
         dataOutput.writeLong(unmarriedPopulation);
     }
 
     @Override
     public void readFields(DataInput dataInput) throws IOException {
-        super.readFields(dataInput);
         rentTenure = dataInput.readLong();
         unmarriedPopulation = dataInput.readLong();
     }

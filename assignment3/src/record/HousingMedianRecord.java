@@ -8,7 +8,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class HousingMedianRecord extends Record {
+import org.apache.hadoop.io.Writable;
+
+public class HousingMedianRecord implements Writable {
 
     public static final List<String> VALUE_LIST = Arrays.asList("Less than $15,000",
             "$15,000 - $19,999",
@@ -78,7 +80,6 @@ public class HousingMedianRecord extends Record {
 
     @Override
     public void write(DataOutput dataOutput) throws IOException {
-        super.write(dataOutput);
         for (Long value : map.values()) {
             dataOutput.writeLong(value);
         }
@@ -86,7 +87,6 @@ public class HousingMedianRecord extends Record {
 
     @Override
     public void readFields(DataInput dataInput) throws IOException {
-        super.readFields(dataInput);
         for (String string : map.keySet()) {
             map.put(string, dataInput.readLong());
         }

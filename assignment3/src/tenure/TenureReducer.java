@@ -13,21 +13,15 @@ public class TenureReducer extends Reducer<Text, TenureRecord, Text, TenureRecor
             throws IOException, InterruptedException {
         long rented = 0;
         long owned = 0;
-        long totalNumberOfPartsInRecord = 0;
-        long logicalRecodPartNumber = 0;
 
         for (TenureRecord val : values) {
             rented += val.getRented();
             owned += val.getOwned();
-            totalNumberOfPartsInRecord = val.getTotalNumberOfPartsInRecord();
-            logicalRecodPartNumber = val.getLogicalRecordPartNumber();
         }
 
         TenureRecord tenureRecord = new TenureRecord();
         tenureRecord.setOwned(owned);
         tenureRecord.setRented(rented);
-        tenureRecord.setTotalNumberOfPartsInRecord(totalNumberOfPartsInRecord);
-        tenureRecord.setLogicalRecordPartNumber(logicalRecodPartNumber);
         context.write(key, tenureRecord);
     }
 

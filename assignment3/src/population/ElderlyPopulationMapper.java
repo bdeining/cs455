@@ -18,7 +18,7 @@ public class ElderlyPopulationMapper
 
         String unparsedText = value.toString();
         String summaryLevel = RecordParsingUtils.getSummaryLevel(unparsedText);
-        if (summaryLevel.equals("100")) {
+        if (summaryLevel.equals(RecordParsingUtils.SUMMARY_LEVEL)) {
 
             String state = RecordParsingUtils.getState(unparsedText);
             Long logicalRecordPartNumber = RecordParsingUtils.getLogicalRecordPartNumber(
@@ -31,8 +31,6 @@ public class ElderlyPopulationMapper
             if (!logicalRecordPartNumber.equals(totalNumberOfPartsInRecord)) {
                 elderlyPopulationRecord.setPopulation(getElderlyPopulation(unparsedText),
                         getPopulation(unparsedText));
-                elderlyPopulationRecord.setLogicalRecordPartNumber(logicalRecordPartNumber);
-                elderlyPopulationRecord.setTotalNumberOfPartsInRecord(totalNumberOfPartsInRecord);
                 context.write(new Text(state), elderlyPopulationRecord);
             }
         }

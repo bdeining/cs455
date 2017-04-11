@@ -4,7 +4,9 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-public class AverageRoomRecord extends Record {
+import org.apache.hadoop.io.Writable;
+
+public class AverageRoomRecord implements Writable {
 
     public static final int NUM_ROOMS = 9;
 
@@ -14,17 +16,16 @@ public class AverageRoomRecord extends Record {
         roomCounts = new long[NUM_ROOMS];
     }
 
-    public void setRoomCounts(long[] roomCounts) {
-        this.roomCounts = roomCounts;
-    }
-
     public long[] getRoomCounts() {
         return roomCounts;
     }
 
+    public void setRoomCounts(long[] roomCounts) {
+        this.roomCounts = roomCounts;
+    }
+
     @Override
     public void write(DataOutput dataOutput) throws IOException {
-        super.write(dataOutput);
         for (int i = 0; i < NUM_ROOMS; i++) {
             dataOutput.writeLong(roomCounts[i]);
         }
@@ -32,7 +33,6 @@ public class AverageRoomRecord extends Record {
 
     @Override
     public void readFields(DataInput dataInput) throws IOException {
-        super.readFields(dataInput);
         for (int i = 0; i < NUM_ROOMS; i++) {
             roomCounts[i] = dataInput.readLong();
         }
