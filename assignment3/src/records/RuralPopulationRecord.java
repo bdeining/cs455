@@ -10,7 +10,7 @@ public class RuralPopulationRecord implements Writable {
 
     private long population;
 
-    private long ruralPopulation;
+    private long outsideUrbanPopulation;
 
     private long urbanPopulation;
 
@@ -26,12 +26,12 @@ public class RuralPopulationRecord implements Writable {
         this.population = population;
     }
 
-    public long getRuralPopulation() {
-        return ruralPopulation;
+    public long getOutsideUrbanPopulation() {
+        return outsideUrbanPopulation;
     }
 
-    public void setRuralPopulation(long ruralPopulation) {
-        this.ruralPopulation = ruralPopulation;
+    public void setOutsideUrbanPopulation(long outsideUrbanPopulation) {
+        this.outsideUrbanPopulation = outsideUrbanPopulation;
     }
 
     public long getUrbanPopulation() {
@@ -44,14 +44,14 @@ public class RuralPopulationRecord implements Writable {
 
     @Override
     public void write(DataOutput dataOutput) throws IOException {
-        dataOutput.writeLong(ruralPopulation);
+        dataOutput.writeLong(outsideUrbanPopulation);
         dataOutput.writeLong(urbanPopulation);
         dataOutput.writeLong(population);
     }
 
     @Override
     public void readFields(DataInput dataInput) throws IOException {
-        ruralPopulation = dataInput.readLong();
+        outsideUrbanPopulation = dataInput.readLong();
         urbanPopulation = dataInput.readLong();
         population = dataInput.readLong();
     }
@@ -62,8 +62,14 @@ public class RuralPopulationRecord implements Writable {
     }
 
     private String generatePopulationString() {
-        double percentRural = (double) ruralPopulation / (double) population * 100;
-        double percentUrban = (double) urbanPopulation / (double) population * 100;
-        return String.format("%s\t%s\t%s\t%s\t%s", population, ruralPopulation, percentRural, urbanPopulation, percentUrban);
+        double ruralPopulation = population - outsideUrbanPopulation - urbanPopulation;
+        double percentRural = ruralPopulation / (double) population * 100;
+        double percentUrban = ((double) urbanPopulation + outsideUrbanPopulation) / (double) population * 100;
+        return String.format("%s\t%s\t%s\t%s\t%s",
+                population,
+                (outsideUrbanPopulation + urbanPopulation),
+                ruralPopulation,
+                percentRural,
+                percentUrban);
     }
 }

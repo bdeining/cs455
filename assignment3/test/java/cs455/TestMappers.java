@@ -71,7 +71,7 @@ public class TestMappers {
 
         count = 0;
         for (int i = 3864; i < 4135; i += 9) {
-            System.out.println(i + "-" + (i+9));
+            System.out.println(i + "-" + (i + 9));
             count++;
         }
 
@@ -79,7 +79,7 @@ public class TestMappers {
 
         count = 0;
         for (int i = 4143; i < 4414; i += 9) {
-            System.out.println(i + "-" + (i+9));
+            System.out.println(i + "-" + (i + 9));
             count++;
         }
 

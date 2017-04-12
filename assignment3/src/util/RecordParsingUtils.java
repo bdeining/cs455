@@ -23,8 +23,8 @@ public class RecordParsingUtils {
     /**
      * Parse data from mapper from start to end and convert it into a long.
      *
-     * @param start - start index in the unparsedText string
-     * @param end - end index in the unparsedText string
+     * @param start        - start index in the unparsedText string
+     * @param end          - end index in the unparsedText string
      * @param unparsedText - raw data from mapper
      * @return - parsed long
      */

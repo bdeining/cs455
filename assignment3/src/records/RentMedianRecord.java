@@ -4,7 +4,6 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,8 +27,7 @@ public class RentMedianRecord implements Writable {
             "$650 to $699",
             "$700 to $749",
             "$750 to $999",
-            "$1000 or more",
-            "No cash rent");
+            "$1000 or more");
 
     private Map<String, Long> map;
 

@@ -9,8 +9,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import records.RuralPopulationRecord;
 import util.RecordParsingUtils;
 
-public class RuralPopulationMapper
-        extends Mapper<LongWritable, Text, Text, RuralPopulationRecord> {
+public class RuralPopulationMapper extends Mapper<LongWritable, Text, Text, RuralPopulationRecord> {
 
     @Override
     protected void map(LongWritable key, Text value, Context context)
@@ -26,12 +25,12 @@ public class RuralPopulationMapper
             Long totalNumberOfPartsInRecord = RecordParsingUtils.getTotalNumberOfPartsInRecord(
                     unparsedText);
 
-            RuralPopulationRecord ruralPopulationRecord =
-                    new RuralPopulationRecord();
+            RuralPopulationRecord ruralPopulationRecord = new RuralPopulationRecord();
 
             if (!logicalRecordPartNumber.equals(totalNumberOfPartsInRecord)) {
                 ruralPopulationRecord.setPopulation(getPopulation(unparsedText));
-                ruralPopulationRecord.setRuralPopulation(getRuralPopulation(unparsedText));
+                ruralPopulationRecord.setOutsideUrbanPopulation(getOutsideUrbanPopulation(
+                        unparsedText));
                 ruralPopulationRecord.setUrbanPopulation(getUrbanPopulation(unparsedText));
                 context.write(new Text(state), ruralPopulationRecord);
             }
@@ -42,11 +41,11 @@ public class RuralPopulationMapper
         return RecordParsingUtils.parseTextIntoLong(300, 309, unparsedText);
     }
 
-    private Long getRuralPopulation(String unparsedText) {
-        return RecordParsingUtils.parseTextIntoLong(328, 337, unparsedText);
+    private Long getOutsideUrbanPopulation(String unparsedText) {
+        return RecordParsingUtils.parseTextIntoLong(327, 336, unparsedText);
     }
 
     private Long getUrbanPopulation(String unparsedText) {
-        return RecordParsingUtils.parseTextIntoLong(337, 346, unparsedText);
+        return RecordParsingUtils.parseTextIntoLong(336, 345, unparsedText);
     }
 }

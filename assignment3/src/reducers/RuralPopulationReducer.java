@@ -16,15 +16,15 @@ public class RuralPopulationReducer
 
         long totalPopulation = 0;
         long urbanPopulation = 0;
-        long ruralPopulation = 0;
+        long outsideUrbanPopulation = 0;
 
         for (RuralPopulationRecord val : values) {
             totalPopulation += val.getPopulation();
             urbanPopulation += val.getUrbanPopulation();
-            ruralPopulation += val.getRuralPopulation();
+            outsideUrbanPopulation += val.getOutsideUrbanPopulation();
         }
 
-        marriageRecord.setRuralPopulation(ruralPopulation);
+        marriageRecord.setOutsideUrbanPopulation(outsideUrbanPopulation);
         marriageRecord.setUrbanPopulation(urbanPopulation);
         marriageRecord.setPopulation(totalPopulation);
         context.write(key, marriageRecord);
