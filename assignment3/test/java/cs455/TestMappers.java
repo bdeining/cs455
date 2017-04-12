@@ -8,10 +8,21 @@ import java.util.List;
 
 import org.junit.Test;
 
-import housing.AverageRoomPercentileReducer;
-import record.HousingMedianRecord;
+import records.HousingMedianRecord;
+import reducers.AverageRoomPercentileReducer;
 
 public class TestMappers {
+
+    @Test
+    public void testMarriageBoundaries() {
+        int start = 4422;
+        int end = 4431;
+        int count = 0;
+        for (int i = start; i < end; i += 9) {
+            count++;
+        }
+        assertThat(count, is(1));
+    }
 
     @Test
     public void testHispanicBoundaries() {
@@ -57,6 +68,25 @@ public class TestMappers {
         }
 
         assertThat(count, is(2));
+
+        count = 0;
+        for (int i = 3864; i < 4135; i += 9) {
+            System.out.println(i + "-" + (i+9));
+            count++;
+        }
+
+        assertThat(count, is(31));
+
+        count = 0;
+        for (int i = 4143; i < 4414; i += 9) {
+            System.out.println(i + "-" + (i+9));
+            count++;
+        }
+
+        assertThat(count, is(31));
+
+        //4143, 4414
+        //3864, 4135
     }
 
     @Test
@@ -66,7 +96,29 @@ public class TestMappers {
             count++;
         }
 
-        System.out.println(count == HousingMedianRecord.VALUE_LIST.size());
+        assertThat(count, is(HousingMedianRecord.VALUE_LIST.size()));
+    }
+
+    @Test
+    public void testHousingType() {
+        int start = 1821;
+        int end = 1831;
+        int count = 0;
+        for (int i = start; i < end; i += 9) {
+            count++;
+        }
+
+        assertThat(count, is(2));
+
+        count = 0;
+        start = 1839;
+        end = 1848;
+
+        for (int i = start; i < end; i += 9) {
+            count++;
+        }
+
+        assertThat(count, is(1));
     }
 
     @Test
